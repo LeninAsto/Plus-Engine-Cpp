@@ -9,10 +9,12 @@
 #include "MainMenuState.h"
 #include "TitleState.h"
 #include "CreditsState.h"
+#include "FreeplayState.h"
 #include "../core/StateManager.h"
 #include "../core/Logger.h"
 #include "../audio/Conductor.h"
 #include "../audio/MusicPlayer.h"
+#include "../audio/SoundPlayer.h"
 #include "../data/Paths.h"
 #include <cmath>
 
@@ -145,6 +147,13 @@ void MainMenuState::LayoutItems() {
 void MainMenuState::ChangeSelection(int delta) {
     m_CurSelected = (m_CurSelected + delta + MENU_ITEM_COUNT) % MENU_ITEM_COUNT;
 
+    if (delta != 0) {
+        const std::string sfx = Paths::Sound("scrollMenu");
+        if (!sfx.empty()) {
+            SoundPlayer::Play(sfx, 1.0f);
+        }
+    }
+
     for (int i = 0; i < MENU_ITEM_COUNT; i++) {
         bool sel = (i == m_CurSelected);
         m_Items[i].alpha = 1.0f; // all items stay fully visible (matches Haxe)
@@ -179,7 +188,10 @@ void MainMenuState::Confirm() {
     m_Accepting  = true;
     m_Confirming = true;
     m_FlashAlpha = 1.0f;
-    MusicPlayer::SetVolume(0.0f); // cut music on confirm (matches original)
+    const std::string sfx = Paths::Sound("confirmMenu");
+    if (!sfx.empty()) {
+        SoundPlayer::Play(sfx, 1.0f);
+    }
     Logger::Info("[MainMenuState] Confirmed: " + ITEM_NAMES[m_CurSelected]);
 }
 
@@ -244,8 +256,13 @@ void MainMenuState::HandleEvent(const SDL_Event& e) {
                 Confirm();
                 break;
             case SDLK_ESCAPE:
-                // Mirrors Haxe: BACK goes to TitleState
-                StateManager::Get().Switch(std::make_unique<TitleState>());
+                {
+                    const std::string sfx = Paths::Sound("cancelMenu");
+                    if (!sfx.empty()) {
+                        SoundPlayer::Play(sfx, 1.0f);
+                    }
+                    StateManager::Get().SwitchWithFade(std::make_unique<TitleState>(), 0.7f);
+                }
                 break;
             default: break;
         }
@@ -287,12 +304,14 @@ void MainMenuState::Update(float dt) {
         m_TransTimer += dt;
         if (m_TransTimer >= TRANS_DELAY) {
             const std::string& option = ITEM_NAMES[m_CurSelected];
+            m_Confirming = false;
             if (option == "credits") {
-                StateManager::Get().Switch(std::make_unique<CreditsState>());
+                StateManager::Get().SwitchWithFade(std::make_unique<CreditsState>(), 0.7f);
+            } else if (option == "freeplay") {
+                StateManager::Get().SwitchWithFade(std::make_unique<FreeplayState>(), 0.7f);
             } else {
                 // Other sub-states not yet implemented — reset
                 Logger::Info("[MainMenuState] TODO transition for: " + option);
-                m_Confirming  = false;
                 m_Accepting   = false;
                 m_TransTimer  = 0.0f;
                 m_FlashAlpha  = 0.0f;

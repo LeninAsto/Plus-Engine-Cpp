@@ -71,6 +71,12 @@ public:
     /** Stage definition JSON */
     static std::string StageData(const std::string& stageName);
 
+    /** Week definition JSON */
+    static std::string WeekData(const std::string& weekName);
+
+    /** Specific chart file stem inside a song folder */
+    static std::string SongVariantData(const std::string& songFolder, const std::string& fileStem);
+
     // =====================================================================
     // Fonts
     // =====================================================================
@@ -86,6 +92,9 @@ public:
 
     /** Get the assets root directory */
     static const std::string& GetRoot() { return s_AssetsRoot; }
+
+    /** Resolve the first relative path that exists */
+    static std::string ResolveFirstExisting(const std::vector<std::string>& relatives);
 
 private:
     static std::string s_AssetsRoot;

@@ -7,6 +7,8 @@
  */
 
 #include "FadeTransition.h"
+#include "../../audio/SoundPlayer.h"
+#include "../../data/Paths.h"
 #include <SDL2/SDL.h>
 #include <cmath>
 
@@ -21,6 +23,13 @@ FadeTransition::FadeTransition(float duration, bool isTransIn, Callback onFinish
 void FadeTransition::Enter() {
     m_GradientH = static_cast<float>(SCR_H);
     m_Done      = false;
+
+    if (!m_IsTransIn) {
+        const std::string sfx = Paths::Sound("FadeTransition");
+        if (!sfx.empty()) {
+            SoundPlayer::Play(sfx, 0.4f);
+        }
+    }
 
     // Both fade-in and fade-out start with the gradient strip above the screen.
     // For fade-out: the solid black bar is ABOVE the gradient (also above screen)
@@ -43,8 +52,8 @@ void FadeTransition::Update(float dt) {
 
     if (m_GradientY >= targetPos) {
         m_Done = true;
-        if (m_OnFinish) m_OnFinish();
         Close();
+        if (m_OnFinish) m_OnFinish();
     }
 }
 

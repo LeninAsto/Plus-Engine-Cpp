@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
     config.title = "Friday Night Funkin' Plus Engine - C++ Edition";
     config.windowWidth = 1280;
     config.windowHeight = 720;
-    config.targetFPS = 60;
+    config.targetFPS = 0;
     config.vsync = true;
     config.fullscreen = false;
     config.resizable = false;

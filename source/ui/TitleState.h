@@ -19,6 +19,7 @@
 #include "../core/MusicBeatState.h"
 #include "../graphics/AnimatedSprite.h"
 #include "../graphics/Alphabet.h"
+#include "../graphics/Sprite.h"
 #include <vector>
 #include <string>
 
@@ -42,6 +43,7 @@ private:
     AnimatedSprite m_Logo;       // logoBumpin.png/xml  - animation: 'bump'
     AnimatedSprite m_GfDance;    // gfDanceTitle.png/xml - animations: 'danceLeft', 'danceRight'
     AnimatedSprite m_TitleEnter; // titleEnter.png/xml   - animations: 'idle', 'press'
+    Sprite         m_NewgroundsLogo;
 
     bool m_AssetsLoaded = false;
 

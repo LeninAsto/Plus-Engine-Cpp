@@ -21,7 +21,7 @@ struct ApplicationConfig {
     std::string title = "Friday Night Funkin' Plus Engine";
     int windowWidth = 1280;
     int windowHeight = 720;
-    int targetFPS = 60;
+    int targetFPS = 0;
     bool vsync = true;
     bool fullscreen = false;
     bool resizable = false;
@@ -76,6 +76,16 @@ private:
     Application() = default;
     ~Application() = default;
     
+    /**
+     * Configure runtime DLL search paths for bundled plugins
+     */
+    bool ConfigureRuntimePlugins();
+
+    /**
+     * Resolve target FPS from the active display refresh rate.
+     */
+    void ResolveTargetFPS();
+
     /**
      * Initialize SDL2 and create window/renderer
      */

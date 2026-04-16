@@ -1,0 +1,47 @@
+=========================================
+  FNF Plus Engine - C++ Edition Log
+  Started: 00:33:28
+=========================================
+[00:33:28] [INFO]  Logger initialized
+[00:33:28] [INFO]  ========================================
+[00:33:28] [INFO]    FNF Plus Engine - C++ Rewrite
+[00:33:28] [INFO]  ========================================
+[00:33:28] [INFO]  [OK] Paths initialized - root: C:/Users/USUARIO/Desktop/Plus-Engine-Cpp/build/assets
+[00:33:28] [INFO]  Runtime plugins loaded from: C:\Users\USUARIO\Desktop\Plus-Engine-Cpp\build\plugins
+[00:33:28] [INFO]  Initializing SDL2...
+[00:33:28] [INFO]  [OK] SDL2 initialized successfully!
+[00:33:28] [INFO]  [OK] Window created: 1280x720
+[00:33:28] [INFO]  [OK] Renderer created with VSync enabled
+[00:33:28] [INFO]  [OK] TextureCache initialized (PNG support)
+[00:33:28] [WARN]  MusicPlayer: Some audio formats unavailable: MP3 support not available
+[00:33:28] [INFO]  [OK] MusicPlayer initialized (OGG/MP3 support)
+[00:33:28] [INFO]  Target FPS auto-detected from display refresh rate: 100
+[00:33:28] [INFO]  ========================================
+[00:33:28] [INFO]    Application initialized successfully!
+[00:33:28] [INFO]    Press ESC or close window to exit
+[00:33:28] [INFO]  ========================================
+[00:33:28] [INFO]  DebugOverlay font loaded: C:/Users/USUARIO/Desktop/Plus-Engine-Cpp/build/assets/fonts/inter.otf
+[00:33:28] [INFO]  [TitleState] Enter
+[00:33:29] [INFO]  [Alphabet] Parsed 69 bold + 43 normal + 26 lowercase + 26 uppercase glyphs
+[00:33:29] [INFO]  [Alphabet] Atlas loaded OK
+[00:33:29] [INFO]  [OK] Playing music: C:/Users/USUARIO/Desktop/Plus-Engine-Cpp/build/assets/shared/music/freakyMenu.ogg
+[00:33:29] [INFO]  [TitleState] Playing freakyMenu
+[00:33:31] [INFO]  [TitleState] Intro skipped
+[00:33:31] [INFO]  [TitleState] Key pressed -> transitioning to MainMenuState
+[00:33:33] [INFO]  [TitleState] Exit
+[00:33:33] [INFO]  [MainMenuState] Enter
+[00:33:36] [INFO]  [MainMenuState] Confirmed: freeplay
+[00:33:38] [INFO]  [MainMenuState] Exit
+[00:33:38] [INFO]  [FreeplayState] Enter
+[00:33:46] [INFO]  [OK] Playing music: C:/Users/USUARIO/Desktop/Plus-Engine-Cpp/build/assets/songs/tutorial/Inst.ogg
+[00:33:57] [INFO]  [OK] Playing music: C:/Users/USUARIO/Desktop/Plus-Engine-Cpp/build/assets/shared/music/freakyMenu.ogg
+[00:33:59] [INFO]  [FreeplayState] Selected chart: C:/Users/USUARIO/Desktop/Plus-Engine-Cpp/build/assets/shared/data/tutorial/tutorial.json
+[00:33:59] [INFO]  [FreeplayState] Exit
+[00:33:59] [INFO]  [LoadingState] Enter for: Tutorial
+[00:33:59] [INFO]  [SongChart] Loaded 'Tutorial' with 55 notes
+[00:34:00] [INFO]  [LoadingState] Exit
+[00:34:00] [INFO]  [PlayState] Enter: Tutorial
+[00:34:00] [INFO]  [OK] Playing music: C:/Users/USUARIO/Desktop/Plus-Engine-Cpp/build/assets/songs/tutorial/Inst.ogg
+[00:34:19] [INFO]  Window close requested
+[00:34:19] [INFO]  ========================================
+[00:34:19] [INFO]  Shutting down application...

@@ -1,0 +1,76 @@
+=========================================
+  FNF Plus Engine - C++ Edition Log
+  Started: 00:13:51
+=========================================
+[00:13:51] [INFO]  Logger initialized
+[00:13:51] [INFO]  ========================================
+[00:13:51] [INFO]    FNF Plus Engine - C++ Rewrite
+[00:13:51] [INFO]  ========================================
+[00:13:51] [INFO]  [OK] Paths initialized - root: C:/Users/USUARIO/Desktop/Plus-Engine-Cpp/build/assets
+[00:13:51] [INFO]  Runtime plugins loaded from: C:\Users\USUARIO\Desktop\Plus-Engine-Cpp\build\plugins
+[00:13:51] [INFO]  Initializing SDL2...
+[00:13:51] [INFO]  [OK] SDL2 initialized successfully!
+[00:13:51] [INFO]  [OK] Window created: 1280x720
+[00:13:51] [INFO]  [OK] Renderer created with VSync enabled
+[00:13:51] [INFO]  [OK] TextureCache initialized (PNG support)
+[00:13:51] [WARN]  MusicPlayer: Some audio formats unavailable: MP3 support not available
+[00:13:51] [INFO]  [OK] MusicPlayer initialized (OGG/MP3 support)
+[00:13:51] [INFO]  Target FPS auto-detected from display refresh rate: 100
+[00:13:51] [INFO]  ========================================
+[00:13:51] [INFO]    Application initialized successfully!
+[00:13:51] [INFO]    Press ESC or close window to exit
+[00:13:51] [INFO]  ========================================
+[00:13:51] [INFO]  DebugOverlay font loaded: C:/Users/USUARIO/Desktop/Plus-Engine-Cpp/build/assets/fonts/inter.otf
+[00:13:51] [INFO]  [TitleState] Enter
+[00:13:52] [INFO]  [Alphabet] Parsed 69 bold + 43 normal + 26 lowercase + 26 uppercase glyphs
+[00:13:52] [INFO]  [Alphabet] Atlas loaded OK
+[00:13:52] [INFO]  [OK] Playing music: C:/Users/USUARIO/Desktop/Plus-Engine-Cpp/build/assets/shared/music/freakyMenu.ogg
+[00:13:52] [INFO]  [TitleState] Playing freakyMenu
+[00:13:55] [INFO]  [TitleState] Intro skipped
+[00:13:57] [INFO]  [TitleState] Key pressed -> transitioning to MainMenuState
+[00:13:59] [INFO]  [TitleState] Exit
+[00:13:59] [INFO]  [MainMenuState] Enter
+[00:14:06] [INFO]  [MainMenuState] Confirmed: freeplay
+[00:14:07] [INFO]  [MainMenuState] Exit
+[00:14:07] [INFO]  [FreeplayState] Enter
+[00:14:26] [INFO]  [FreeplayState] Exit
+[00:14:26] [INFO]  [MainMenuState] Enter
+[00:14:34] [INFO]  [MainMenuState] Confirmed: credits
+[00:14:36] [INFO]  [MainMenuState] Exit
+[00:14:36] [INFO]  [CreditsState] Enter
+[00:14:42] [INFO]  [CreditsState] Selected: Legacy Odyssey
+[00:14:42] [INFO]  [CreditsState] Selected: DaffyToons
+[00:14:43] [INFO]  [CreditsState] Selected: Andres
+[00:14:43] [INFO]  [CreditsState] Selected: sirthegamercoder
+[00:14:43] [INFO]  [CreditsState] Selected: Hansuke H
+[00:14:44] [INFO]  [CreditsState] Selected: TheoDev
+[00:14:44] [INFO]  [CreditsState] Selected: HomuHomu833
+[00:14:46] [INFO]  [CreditsState] Selected: Karim Akra
+[00:14:47] [INFO]  [CreditsState] Selected: Moxie
+[00:14:47] [INFO]  [CreditsState] Selected: Shadow Mario
+[00:14:48] [INFO]  [CreditsState] Selected: Riveren
+[00:14:48] [INFO]  [CreditsState] Selected: bb-panzu
+[00:14:49] [INFO]  [CreditsState] Selected: crowplexus
+[00:14:50] [INFO]  [CreditsState] Selected: bb-panzu
+[00:14:50] [INFO]  [CreditsState] Selected: Riveren
+[00:14:51] [INFO]  [CreditsState] Selected: Shadow Mario
+[00:14:51] [INFO]  [CreditsState] Selected: Moxie
+[00:14:51] [INFO]  [CreditsState] Selected: Karim Akra
+[00:14:52] [INFO]  [CreditsState] Selected: HomuHomu833
+[00:14:52] [INFO]  [CreditsState] Selected: TheoDev
+[00:14:52] [INFO]  [CreditsState] Selected: Hansuke H
+[00:14:52] [INFO]  [CreditsState] Selected: sirthegamercoder
+[00:14:53] [INFO]  [CreditsState] Selected: Andres
+[00:14:53] [INFO]  [CreditsState] Selected: DaffyToons
+[00:14:53] [INFO]  [CreditsState] Selected: Legacy Odyssey
+[00:14:53] [INFO]  [CreditsState] Selected: Lenin Asto
+[00:14:54] [INFO]  [CreditsState] Selected: Join the Psych Ward!
+[00:14:54] [INFO]  [CreditsState] Selected: Lenin Asto
+[00:14:58] [INFO]  [CreditsState] Exit
+[00:14:58] [INFO]  [MainMenuState] Enter
+[00:15:17] [INFO]  [MainMenuState] Exit
+[00:15:17] [INFO]  [TitleState] Enter
+[00:15:17] [INFO]  [TitleState] Intro skipped
+[00:15:20] [INFO]  Window close requested
+[00:15:20] [INFO]  ========================================
+[00:15:20] [INFO]  Shutting down application...

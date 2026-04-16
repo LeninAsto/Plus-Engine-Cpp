@@ -14,6 +14,7 @@ namespace FNF {
 Mix_Music* MusicPlayer::s_Music       = nullptr;
 float      MusicPlayer::s_Volume      = 0.7f;
 bool       MusicPlayer::s_Initialized = false;
+std::unordered_map<std::string, Mix_Music*> MusicPlayer::s_Cache;
 
 bool MusicPlayer::Init(int frequency, int channels, int chunkSize) {
     if (s_Initialized) return true;
@@ -30,6 +31,8 @@ bool MusicPlayer::Init(int frequency, int channels, int chunkSize) {
         Logger::Warn("MusicPlayer: Some audio formats unavailable: " + std::string(Mix_GetError()));
     }
 
+    Mix_AllocateChannels(32);
+
     s_Initialized = true;
     Logger::Info("[OK] MusicPlayer initialized (OGG/MP3 support)");
     return true;
@@ -38,9 +41,33 @@ bool MusicPlayer::Init(int frequency, int channels, int chunkSize) {
 void MusicPlayer::Shutdown() {
     if (!s_Initialized) return;
     Stop();
+    for (auto& [path, music] : s_Cache) {
+        (void)path;
+        if (music) {
+            Mix_FreeMusic(music);
+        }
+    }
+    s_Cache.clear();
     Mix_CloseAudio();
     Mix_Quit();
     s_Initialized = false;
+}
+
+bool MusicPlayer::Preload(const std::string& path) {
+    if (!s_Initialized || path.empty()) return false;
+
+    if (s_Cache.find(path) != s_Cache.end()) {
+        return true;
+    }
+
+    Mix_Music* music = Mix_LoadMUS(path.c_str());
+    if (!music) {
+        Logger::Warn("MusicPlayer: failed to preload '" + path + "': " + Mix_GetError());
+        return false;
+    }
+
+    s_Cache[path] = music;
+    return true;
 }
 
 bool MusicPlayer::Play(const std::string& path, int loops, float volume) {
@@ -49,11 +76,26 @@ bool MusicPlayer::Play(const std::string& path, int loops, float volume) {
     // Free previous music
     if (s_Music) {
         Mix_HaltMusic();
-        Mix_FreeMusic(s_Music);
+        bool isCached = false;
+        for (const auto& [cachedPath, music] : s_Cache) {
+            (void)cachedPath;
+            if (music == s_Music) {
+                isCached = true;
+                break;
+            }
+        }
+        if (!isCached) {
+            Mix_FreeMusic(s_Music);
+        }
         s_Music = nullptr;
     }
 
-    s_Music = Mix_LoadMUS(path.c_str());
+    auto it = s_Cache.find(path);
+    if (it != s_Cache.end()) {
+        s_Music = it->second;
+    } else {
+        s_Music = Mix_LoadMUS(path.c_str());
+    }
     if (!s_Music) {
         Logger::Error("MusicPlayer: failed to load '" + path + "': " + Mix_GetError());
         return false;
@@ -74,7 +116,17 @@ bool MusicPlayer::Play(const std::string& path, int loops, float volume) {
 void MusicPlayer::Stop() {
     Mix_HaltMusic();
     if (s_Music) {
-        Mix_FreeMusic(s_Music);
+        bool isCached = false;
+        for (const auto& [cachedPath, music] : s_Cache) {
+            (void)cachedPath;
+            if (music == s_Music) {
+                isCached = true;
+                break;
+            }
+        }
+        if (!isCached) {
+            Mix_FreeMusic(s_Music);
+        }
         s_Music = nullptr;
     }
 }

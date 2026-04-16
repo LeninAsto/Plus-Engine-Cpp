@@ -7,9 +7,8 @@ Actualmente el código depende de estas librerías externas:
 - SDL2
 - SDL2_image
 - SDL2_mixer
+- SDL2_ttf
 - nlohmann-json
-
-Por ahora el proyecto no necesita SDL_ttf.
 
 ## 1. Requisitos
 
@@ -58,6 +57,7 @@ cd vcpkg
 .\vcpkg install sdl2:x64-windows
 .\vcpkg install sdl2-image:x64-windows
 .\vcpkg install sdl2-mixer:x64-windows
+.\vcpkg install sdl2-ttf:x64-windows
 .\vcpkg install nlohmann-json:x64-windows
 ```
 
@@ -72,6 +72,7 @@ Deberías ver paquetes parecidos a estos:
 - `sdl2:x64-windows`
 - `sdl2-image:x64-windows`
 - `sdl2-mixer:x64-windows`
+- `sdl2-ttf:x64-windows`
 - `nlohmann-json:x64-windows`
 
 ## 4. Qué usa este proyecto exactamente
@@ -81,6 +82,7 @@ Estos archivos son la razón de esas dependencias:
 - SDL2 para ventana y render: `source/core/Application.h`
 - SDL2_image para cargar texturas: `source/graphics/Texture.h`
 - SDL2_mixer para audio: `source/audio/MusicPlayer.h`
+- SDL2_ttf para texto con fuentes OTF/TTF: `source/ui/debug/DebugOverlay.h`
 - nlohmann-json para parsear JSON: `source/data/JsonLoader.h`
 
 ## 5. Compilar con `cl.exe` en VS Code
@@ -96,6 +98,7 @@ Los argumentos importantes son estos:
 "SDL2.lib",
 "SDL2_image.lib",
 "SDL2_mixer.lib",
+"SDL2_ttf.lib",
 "user32.lib",
 "gdi32.lib",
 "psapi.lib",
@@ -171,9 +174,22 @@ Normalmente estarán aquí:
 C:\vcpkg\installed\x64-windows\bin
 ```
 
-Tienes dos opciones:
+Este proyecto ahora usa una carpeta dedicada:
 
-1. Copiar las DLLs necesarias junto a `build\PlusEngine.exe`
+```text
+build\plugins
+```
+
+El task de compilación por defecto hace esto automáticamente:
+
+1. Compila `PlusEngine.exe`
+2. Crea `build\plugins` si no existe
+3. Copia ahí las DLLs de `C:\vcpkg\installed\x64-windows\bin`
+4. El engine registra esa carpeta antes de inicializar SDL
+
+Si quieres hacerlo manualmente, tienes dos opciones:
+
+1. Copiar las DLLs necesarias a `build\plugins`
 2. Agregar `C:\vcpkg\installed\x64-windows\bin` al `PATH`
 
 DLLs típicas involucradas:
@@ -181,8 +197,61 @@ DLLs típicas involucradas:
 - `SDL2.dll`
 - `SDL2_image.dll`
 - `SDL2_mixer.dll`
+- `SDL2_ttf.dll`
 
-Dependiendo de cómo vcpkg haya construido SDL_mixer, también podrías necesitar DLLs extra relacionadas con codecs.
+Dependiendo de cómo vcpkg haya construido SDL_mixer, también podrías necesitar DLLs extra relacionadas con codecs. El task actual copia todas las `.dll` de esa carpeta precisamente para evitar ese problema.
+
+## 7.1 Assets dentro de build
+
+El runtime ahora prioriza `build/assets` si existe junto al ejecutable. Eso permite empaquetar subconjuntos de assets según flags, más cerca de cómo `Project.xml` decide qué entra al build Haxe.
+
+El task por defecto ahora hace esto en orden:
+
+1. Compila `PlusEngine.exe`
+2. Sincroniza `build/assets`
+3. Copia `build/plugins`
+
+La sincronización de assets la hace `scripts/sync-build-assets.ps1`.
+
+Flags soportadas actualmente:
+
+- `officialBuild`
+- `BASE_GAME_FILES`
+- `TITLE_SCREEN_EASTER_EGG`
+- `TRANSLATIONS_ALLOWED`
+- `VIDEOS_ALLOWED`
+- `MODS_ALLOWED`
+
+Reglas importantes:
+
+1. `officialBuild` activa automáticamente `BASE_GAME_FILES` y `TITLE_SCREEN_EASTER_EGG`.
+2. El task por defecto usa estas flags:
+     `officialBuild,TRANSLATIONS_ALLOWED,VIDEOS_ALLOWED,MODS_ALLOWED`
+3. Si quieres otras, ejecuta el task `Copiar build assets (flags prompt)`.
+
+Ejemplos de combinaciones útiles:
+
+- Build oficial:
+    `officialBuild,TRANSLATIONS_ALLOWED,VIDEOS_ALLOWED,MODS_ALLOWED`
+- Build dev sin base game oficial:
+    `TRANSLATIONS_ALLOWED,VIDEOS_ALLOWED,MODS_ALLOWED`
+- Build mínima:
+    `BASE_GAME_FILES`
+
+Qué copia el script:
+
+- Siempre: `assets/fonts`, `assets/shared`, `assets/embed`, `assets/songs`
+- Siempre: contenido de `assets/week_assets` hacia `build/assets`
+- Con `BASE_GAME_FILES`: `assets/base_game` hacia `build/assets`
+- Con `TITLE_SCREEN_EASTER_EGG`: `assets/secrets` fusionado en `build/assets/shared`
+- Con `TRANSLATIONS_ALLOWED`: `assets/translations` hacia `build/assets`
+- Con `VIDEOS_ALLOWED`: `assets/videos` hacia `build/assets/videos`
+- Con `MODS_ALLOWED`: `example_mods`, `example_sm` y `list.txt` hacia `build`
+
+También copia estos extras de escritorio cuando existen:
+
+- `alsoft.txt` hacia `build/plugins/alsoft.ini`
+- `art/readme.txt` hacia `build/do NOT readme.txt`
 
 ## 8. Compilar desde un Developer PowerShell
 
@@ -271,6 +340,6 @@ Antes de esperar que el proyecto compile, confirma todo esto:
 - `nlohmann-json:x64-windows` está instalado
 - `.vscode/tasks.json` incluye `/I...include`
 - `.vscode/tasks.json` incluye `/LIBPATH:...lib`
-- Las DLLs de SDL están disponibles en runtime
+- Las DLLs de SDL están disponibles en `build\plugins` o por `PATH`
 
 Cuando todo eso esté listo, compilar con `cl.exe` debería dejar de fallar por headers o librerías faltantes.

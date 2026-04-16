@@ -2,3 +2,5 @@
 /build/*.ilk
 /build/*.pdb
 /build/obj/*.obj
+/build/plugins/*.dll
+/build/assets

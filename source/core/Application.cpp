@@ -11,10 +11,51 @@
 #include "StateManager.h"
 #include "../data/Paths.h"
 #include "../audio/MusicPlayer.h"
+#include "../audio/SoundPlayer.h"
 #include "../graphics/Texture.h"
 #include "../ui/TitleState.h"
 #include "../ui/debug/DebugOverlay.h"
 #include <cmath>
+#include <filesystem>
+#include <vector>
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
+namespace {
+
+#ifdef _WIN32
+std::string GetWin32ErrorMessage(DWORD errorCode) {
+    LPSTR buffer = nullptr;
+    const DWORD flags = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
+    const DWORD length = FormatMessageA(
+        flags,
+        nullptr,
+        errorCode,
+        0,
+        reinterpret_cast<LPSTR>(&buffer),
+        0,
+        nullptr
+    );
+
+    if (length == 0 || buffer == nullptr) {
+        return "Win32 error " + std::to_string(errorCode);
+    }
+
+    std::string message(buffer, length);
+    LocalFree(buffer);
+
+    while (!message.empty() && (message.back() == '\r' || message.back() == '\n' || message.back() == ' ')) {
+        message.pop_back();
+    }
+
+    return message;
+}
+#endif
+
+} // namespace
 
 namespace FNF {
 
@@ -37,6 +78,11 @@ bool Application::Init(const ApplicationConfig& config) {
 
     // Initialize asset paths (searches parent dirs if needed)
     Paths::Init("assets");
+
+    if (!ConfigureRuntimePlugins()) {
+        Logger::Fatal("Failed to configure runtime plugins");
+        return false;
+    }
     
     if (!InitSDL()) {
         Logger::Fatal("Failed to initialize SDL");
@@ -52,6 +98,8 @@ bool Application::Init(const ApplicationConfig& config) {
         Logger::Fatal("Failed to initialize MusicPlayer (SDL_mixer)");
         return false;
     }
+
+    ResolveTargetFPS();
     
     m_FrameTime = 1000.0f / static_cast<float>(m_Config.targetFPS);
     m_Initialized = true;
@@ -65,6 +113,92 @@ bool Application::Init(const ApplicationConfig& config) {
     StateManager::Get().Push(std::make_unique<TitleState>());
 
     DebugOverlay::Get().Init(m_Renderer);
+
+    return true;
+}
+
+void Application::ResolveTargetFPS() {
+    if (m_Config.targetFPS > 0) {
+        Logger::Info("Target FPS fixed by config: " + std::to_string(m_Config.targetFPS));
+        return;
+    }
+
+    int resolvedFPS = 60;
+    bool detected = false;
+
+    if (m_Window) {
+        const int displayIndex = SDL_GetWindowDisplayIndex(m_Window);
+        if (displayIndex >= 0) {
+            SDL_DisplayMode displayMode = {};
+            if (SDL_GetCurrentDisplayMode(displayIndex, &displayMode) == 0 && displayMode.refresh_rate > 0) {
+                resolvedFPS = displayMode.refresh_rate;
+                detected = true;
+            } else if (SDL_GetDesktopDisplayMode(displayIndex, &displayMode) == 0 && displayMode.refresh_rate > 0) {
+                resolvedFPS = displayMode.refresh_rate;
+                detected = true;
+            }
+        }
+    }
+
+    m_Config.targetFPS = resolvedFPS;
+
+    if (detected) {
+        Logger::Info("Target FPS auto-detected from display refresh rate: " + std::to_string(m_Config.targetFPS));
+        return;
+    }
+
+    Logger::Warn("Could not detect display refresh rate, falling back to 60 FPS");
+}
+
+bool Application::ConfigureRuntimePlugins() {
+#ifdef _WIN32
+    wchar_t modulePath[MAX_PATH] = {};
+    const DWORD pathLength = GetModuleFileNameW(nullptr, modulePath, MAX_PATH);
+    if (pathLength == 0 || pathLength >= MAX_PATH) {
+        Logger::Warn("Could not resolve executable directory for runtime plugins");
+        return true;
+    }
+
+    const std::filesystem::path pluginDir = std::filesystem::path(modulePath).parent_path() / "plugins";
+    if (!std::filesystem::exists(pluginDir)) {
+        Logger::Warn("Runtime plugin directory not found, falling back to default DLL search: " + pluginDir.string());
+        return true;
+    }
+
+    if (!SetDllDirectoryW(pluginDir.c_str())) {
+        Logger::Error("Failed to register runtime plugin directory '" + pluginDir.string() + "': " + GetWin32ErrorMessage(GetLastError()));
+        return false;
+    }
+
+    const std::vector<std::wstring> runtimeDlls = {
+        L"zlib1.dll",
+        L"libpng16.dll",
+        L"ogg.dll",
+        L"vorbis.dll",
+        L"vorbisfile.dll",
+        L"vorbisenc.dll",
+        L"wavpackdll.dll",
+        L"SDL2.dll",
+        L"SDL2_image.dll",
+        L"SDL2_mixer.dll",
+        L"SDL2_ttf.dll"
+    };
+
+    for (const auto& dllName : runtimeDlls) {
+        const std::filesystem::path dllPath = pluginDir / dllName;
+        if (!std::filesystem::exists(dllPath)) {
+            continue;
+        }
+
+        HMODULE module = LoadLibraryExW(dllPath.c_str(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
+        if (!module) {
+            Logger::Error("Failed to load runtime plugin '" + dllPath.string() + "': " + GetWin32ErrorMessage(GetLastError()));
+            return false;
+        }
+    }
+
+    Logger::Info("Runtime plugins loaded from: " + pluginDir.string());
+#endif
 
     return true;
 }
@@ -226,6 +360,7 @@ void Application::Shutdown() {
     
     StateManager::Get().Clear();
     MusicPlayer::Shutdown();
+    SoundPlayer::Shutdown();
     TextureCache::Shutdown();
     SDL_Quit();
     Logger::Info("[OK] Shutdown complete!");

@@ -10,6 +10,53 @@
 #include "../core/Logger.h"
 #include <algorithm>
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
+namespace {
+
+std::filesystem::path GetExecutableDirectory() {
+#ifdef _WIN32
+    wchar_t modulePath[MAX_PATH] = {};
+    const DWORD pathLength = GetModuleFileNameW(nullptr, modulePath, MAX_PATH);
+    if (pathLength > 0 && pathLength < MAX_PATH) {
+        return std::filesystem::path(modulePath).parent_path();
+    }
+#endif
+    return {};
+}
+
+bool TryResolveAssetsRoot(const std::filesystem::path& startPath,
+                          const std::string& assetsRoot,
+                          std::string& resolvedRoot) {
+    namespace fs = std::filesystem;
+
+    if (startPath.empty()) {
+        return false;
+    }
+
+    fs::path search = startPath;
+    for (int i = 0; i < 8; ++i) {
+        fs::path candidate = search / assetsRoot;
+        if (fs::exists(candidate)) {
+            resolvedRoot = candidate.generic_string();
+            return true;
+        }
+
+        fs::path parent = search.parent_path();
+        if (parent == search) {
+            break;
+        }
+        search = parent;
+    }
+
+    return false;
+}
+
+} // namespace
+
 namespace FNF {
 
 // Static initialization
@@ -26,8 +73,24 @@ void Paths::Init(const std::string& assetsRoot) {
         s_AssetsRoot.pop_back();
     }
 
-    // If the given path already exists, we're done
-    if (std::filesystem::exists(s_AssetsRoot)) {
+    const std::filesystem::path configuredRoot = s_AssetsRoot;
+    if (configuredRoot.is_absolute() && std::filesystem::exists(configuredRoot)) {
+        s_AssetsRoot = configuredRoot.generic_string();
+        Logger::Info("[OK] Paths initialized - root: " + s_AssetsRoot);
+        return;
+    }
+
+    std::string resolvedRoot;
+
+    const std::filesystem::path exeDir = GetExecutableDirectory();
+    if (TryResolveAssetsRoot(exeDir, assetsRoot, resolvedRoot)) {
+        s_AssetsRoot = resolvedRoot;
+        Logger::Info("[OK] Paths initialized - root: " + s_AssetsRoot);
+        return;
+    }
+
+    if (std::filesystem::exists(configuredRoot)) {
+        s_AssetsRoot = configuredRoot.generic_string();
         Logger::Info("[OK] Paths initialized - root: " + s_AssetsRoot);
         return;
     }
@@ -36,17 +99,10 @@ void Paths::Init(const std::string& assetsRoot) {
     // This handles running the exe from build-cpp/bin/Debug/ while
     // assets live at the project root.
     namespace fs = std::filesystem;
-    fs::path search = fs::current_path();
-    for (int i = 0; i < 8; ++i) {
-        fs::path candidate = search / assetsRoot;
-        if (fs::exists(candidate)) {
-            s_AssetsRoot = candidate.generic_string();
-            Logger::Info("[OK] Paths initialized - root: " + s_AssetsRoot);
-            return;
-        }
-        fs::path parent = search.parent_path();
-        if (parent == search) break;  // reached filesystem root
-        search = parent;
+    if (TryResolveAssetsRoot(fs::current_path(), assetsRoot, resolvedRoot)) {
+        s_AssetsRoot = resolvedRoot;
+        Logger::Info("[OK] Paths initialized - root: " + s_AssetsRoot);
+        return;
     }
 
     Logger::Warn("Assets root not found after directory search: " + assetsRoot);
@@ -57,13 +113,18 @@ void Paths::Init(const std::string& assetsRoot) {
 // =========================================================================
 
 std::string Paths::Inst(const std::string& songName) {
-    // base_game/songs/<name>/Inst
-    return ResolveAudio("base_game/songs/" + songName + "/Inst");
+    return ResolveFirstExisting({
+        ResolveAudio("songs/" + songName + "/Inst"),
+        ResolveAudio("base_game/songs/" + songName + "/Inst")
+    });
 }
 
 std::string Paths::Voices(const std::string& songName, const std::string& suffix) {
     std::string file = "Voices" + (suffix.empty() ? "" : "-" + suffix);
-    return ResolveAudio("base_game/songs/" + songName + "/" + file);
+    return ResolveFirstExisting({
+        ResolveAudio("songs/" + songName + "/" + file),
+        ResolveAudio("base_game/songs/" + songName + "/" + file)
+    });
 }
 
 std::string Paths::Sound(const std::string& key) {
@@ -79,15 +140,48 @@ std::string Paths::Music(const std::string& key) {
 // =========================================================================
 
 std::string Paths::Image(const std::string& key, const std::string& library) {
-    return ResolvePath(library + "/images/" + key + ".png");
+    if (library == "shared" || library == "base_game") {
+        return ResolveFirstExisting({
+            "shared/images/" + key + ".png",
+            "base_game/shared/images/" + key + ".png",
+            "base_game/images/" + key + ".png"
+        });
+    }
+
+    return ResolveFirstExisting({
+        library + "/images/" + key + ".png",
+        "base_game/" + library + "/images/" + key + ".png"
+    });
 }
 
 std::string Paths::Xml(const std::string& key, const std::string& library) {
-    return ResolvePath(library + "/images/" + key + ".xml");
+    if (library == "shared" || library == "base_game") {
+        return ResolveFirstExisting({
+            "shared/images/" + key + ".xml",
+            "base_game/shared/images/" + key + ".xml",
+            "base_game/images/" + key + ".xml"
+        });
+    }
+
+    return ResolveFirstExisting({
+        library + "/images/" + key + ".xml",
+        "base_game/" + library + "/images/" + key + ".xml"
+    });
 }
 
 std::string Paths::ImageJson(const std::string& key, const std::string& library) {
-    return ResolvePath(library + "/images/" + key + ".json");
+    if (library == "shared" || library == "base_game") {
+        return ResolveFirstExisting({
+            "shared/images/" + key + ".json",
+            "base_game/shared/images/" + key + ".json",
+            "base_game/images/" + key + ".json"
+        });
+    }
+
+    return ResolveFirstExisting({
+        library + "/images/" + key + ".json",
+        "base_game/" + library + "/images/" + key + ".json"
+    });
 }
 
 // =========================================================================
@@ -99,24 +193,43 @@ std::string Paths::SongData(const std::string& songName, const std::string& diff
     if (!difficulty.empty()) {
         fileName += "-" + difficulty;
     }
-    // New format: base_game/shared/data/<song>/<song>.json
-    std::string newPath = ResolvePath("base_game/shared/data/" + songName + "/" + fileName + ".json");
-    if (!newPath.empty()) return newPath;
-
-    // Legacy fallback
-    return ResolvePath("base_game/data/" + songName + "/" + fileName + ".json");
+    return SongVariantData(songName, fileName);
 }
 
 std::string Paths::SongMeta(const std::string& songName) {
-    return ResolvePath("base_game/shared/data/" + songName + "/metadata.json");
+    return ResolveFirstExisting({
+        "shared/data/" + songName + "/metadata.json",
+        "base_game/shared/data/" + songName + "/metadata.json"
+    });
 }
 
 std::string Paths::CharacterData(const std::string& charName) {
-    return ResolvePath("shared/characters/" + charName + ".json");
+    return ResolveFirstExisting({
+        "shared/characters/" + charName + ".json",
+        "base_game/shared/characters/" + charName + ".json"
+    });
 }
 
 std::string Paths::StageData(const std::string& stageName) {
-    return ResolvePath("shared/stages/" + stageName + ".json");
+    return ResolveFirstExisting({
+        "shared/stages/" + stageName + ".json",
+        "base_game/shared/stages/" + stageName + ".json"
+    });
+}
+
+std::string Paths::WeekData(const std::string& weekName) {
+    return ResolveFirstExisting({
+        "shared/weeks/" + weekName + ".json",
+        "base_game/shared/weeks/" + weekName + ".json"
+    });
+}
+
+std::string Paths::SongVariantData(const std::string& songFolder, const std::string& fileStem) {
+    return ResolveFirstExisting({
+        "shared/data/" + songFolder + "/" + fileStem + ".json",
+        "base_game/shared/data/" + songFolder + "/" + fileStem + ".json",
+        "base_game/data/" + songFolder + "/" + fileStem + ".json"
+    });
 }
 
 // =========================================================================
@@ -150,6 +263,25 @@ std::string Paths::ResolveAudio(const std::string& relative) {
 
     std::string mp3 = ResolvePath(relative + ".mp3");
     if (!mp3.empty()) return mp3;
+
+    return "";
+}
+
+std::string Paths::ResolveFirstExisting(const std::vector<std::string>& relatives) {
+    for (const auto& relative : relatives) {
+        if (relative.empty()) {
+            continue;
+        }
+
+        if (relative.find('/') != std::string::npos && std::filesystem::exists(relative)) {
+            return relative;
+        }
+
+        std::string full = ResolvePath(relative);
+        if (!full.empty()) {
+            return full;
+        }
+    }
 
     return "";
 }

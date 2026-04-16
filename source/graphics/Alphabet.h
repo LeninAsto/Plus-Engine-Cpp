@@ -68,15 +68,35 @@ private:
         int      offY  = 0;   // vertical   trim offset (from frameY)
     };
 
+    struct GlyphAnim {
+        std::vector<CharFrame> frames;
+    };
+
+    struct GlyphMeta {
+        float offsetX = 0.0f;
+        float offsetY = 0.0f;
+    };
+
+    struct LetterMeta {
+        GlyphMeta normal;
+        GlyphMeta bold;
+        bool hasNormal = false;
+        bool hasBold = false;
+    };
+
     struct GlyphEntry {
-        float    drawX = 0;   // x position relative to Alphabet::x
-        float    drawY = 0;   // y position relative to Alphabet::y
-        CharFrame frame;
+        float     drawX = 0;   // logical x position relative to Alphabet::x
+        float     drawY = 0;   // logical y position relative to Alphabet::y
+        GlyphMeta meta;
+        GlyphAnim anim;
     };
 
     static SDL_Texture*                            s_Texture;
-    static std::unordered_map<char, CharFrame>     s_BoldFrames;
-    static std::unordered_map<char, CharFrame>     s_NormalFrames;
+    static std::unordered_map<char, GlyphAnim>     s_BoldFrames;
+    static std::unordered_map<char, GlyphAnim>     s_NormalFrames;
+    static std::unordered_map<char, GlyphAnim>     s_LowercaseFrames;
+    static std::unordered_map<char, GlyphAnim>     s_UppercaseFrames;
+    static std::unordered_map<char, LetterMeta>    s_LetterMeta;
     static bool                                    s_Loaded;
 
     std::vector<GlyphEntry> m_Glyphs;
@@ -92,8 +112,16 @@ private:
     static constexpr float LINE_HEIGHT   = 1.1f;
 
     static void ParseAtlasXml(const std::string& xmlPath);
+    static void ParseAlphabetData(const std::string& jsonPath);
     static CharFrame MakeCharFrame(int x, int y, int w, int h,
                                    int fX, int fY, int fW, int fH);
+    static float MeasureAnimWidth(const GlyphAnim& anim);
+    static float MeasureAnimHeight(const GlyphAnim& anim);
+
+    static constexpr float NORMAL_BASELINE = 110.0f;
+    static constexpr float BOLD_BASELINE   = 70.0f;
+    static constexpr float SPACE_WIDTH     = 28.0f;
+    static constexpr float ROW_HEIGHT      = 85.0f;
 };
 
 } // namespace FNF

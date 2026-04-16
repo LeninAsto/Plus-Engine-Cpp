@@ -12,6 +12,7 @@
 
 #include <SDL2/SDL_mixer.h>
 #include <string>
+#include <unordered_map>
 
 namespace FNF {
 
@@ -31,6 +32,7 @@ public:
      * @param volume 0.0 to 1.0
      */
     static bool Play(const std::string& path, int loops = -1, float volume = 0.7f);
+    static bool Preload(const std::string& path);
 
     static void Stop();
     static void Pause();
@@ -56,6 +58,7 @@ private:
     static Mix_Music* s_Music;
     static float      s_Volume;
     static bool       s_Initialized;
+    static std::unordered_map<std::string, Mix_Music*> s_Cache;
 };
 
 } // namespace FNF

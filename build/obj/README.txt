@@ -1,0 +1,1 @@
+Here only files .obj compiled by Visual Studio are stored.

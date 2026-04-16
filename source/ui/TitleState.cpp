@@ -18,6 +18,7 @@
 #include "../core/Logger.h"
 #include "../audio/Conductor.h"
 #include "../audio/MusicPlayer.h"
+#include "../audio/SoundPlayer.h"
 #include "../data/Paths.h"
 #include <SDL2/SDL.h>
 #include <fstream>
@@ -115,6 +116,7 @@ void TitleState::SkipIntro() {
     if (m_SkippedIntro) return;
     m_SkippedIntro = true;
     DeleteCoolText();
+    m_NewgroundsLogo.visible = false;
     m_BlackAlpha  = 0.0f; // remove black overlay
     m_DoFlashOut  = true;
     m_FlashTimer  = 0.0f;
@@ -139,6 +141,7 @@ void TitleState::Enter() {
     m_DoFlashOut    = false;
     m_FlashTimer    = 0.0f;
     m_CredLines.clear();
+    m_NewgroundsLogo.visible = false;
     LoadWackyText();
 }
 
@@ -178,6 +181,14 @@ void TitleState::LoadAssets(SDL_Renderer* renderer) {
         m_TitleEnter.AddByPrefix("idle",  "ENTER IDLE",   24, true);
         m_TitleEnter.AddByPrefix("press", "ENTER FREEZE", 24, false);
         m_TitleEnter.Play("idle");
+    }
+
+    std::string newgroundsPath = Paths::Image("newgrounds_logo");
+    if (!newgroundsPath.empty() && m_NewgroundsLogo.Load(renderer, newgroundsPath)) {
+        m_NewgroundsLogo.SetScale(0.8f);
+        m_NewgroundsLogo.x = (SCR_W - m_NewgroundsLogo.GetWidth()) * 0.5f;
+        m_NewgroundsLogo.y = static_cast<float>(SCR_H) * 0.52f;
+        m_NewgroundsLogo.visible = false;
     }
 
     // Music
@@ -232,6 +243,10 @@ void TitleState::HandleEvent(const SDL_Event& e) {
     m_FlickerTimer = 0.0f;
     m_TransTimer   = 0.0f;
     m_TitleEnter.Play("press", true);
+    const std::string sfx = Paths::Sound("confirmMenu");
+    if (!sfx.empty()) {
+        SoundPlayer::Play(sfx, 0.7f);
+    }
     Logger::Info("[TitleState] Key pressed -> transitioning to MainMenuState");
 }
 
@@ -300,6 +315,8 @@ void TitleState::Render(SDL_Renderer* renderer) {
             line.label.Draw(renderer);
         }
 
+        m_NewgroundsLogo.Draw(renderer);
+
         SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
     }
 
@@ -349,9 +366,11 @@ void TitleState::BeatHit() {
             break;
         case 8:
             AddMoreText("newgrounds", -40.0f);
+            m_NewgroundsLogo.visible = true;
             break;
         case 9:
             DeleteCoolText();
+            m_NewgroundsLogo.visible = false;
             break;
         case 10:
             AddCoolText({ m_WackyText[0] });
@@ -372,6 +391,7 @@ void TitleState::BeatHit() {
             AddMoreText("Funkin");
             break;
         case 17:
+            m_NewgroundsLogo.visible = false;
             SkipIntro();
             break;
         default:

@@ -11,6 +11,8 @@
 #include "../core/StateManager.h"
 #include "../core/Logger.h"
 #include "../audio/MusicPlayer.h"
+#include "../audio/SoundPlayer.h"
+#include "../data/Paths.h"
 #include <cmath>
 #include <algorithm>
 
@@ -25,50 +27,50 @@ void CreditsState::BuildEntries() {
 
     // Plus Engine Team
     m_Entries.push_back(MakeHeader("Plus Engine Team"));
-    m_Entries.push_back(MakeEntry("Lenin Asto",       "Programmer of Plus Engine",                             "https://www.youtube.com/@Lenin_Anonimo_Of", "03FC88"));
-    m_Entries.push_back(MakeEntry("Legacy Odyssey",   "Co-programmer of Plus Engine",                         "https://www.youtube.com/@LegacyOdyssey",    "8E07C2"));
-    m_Entries.push_back(MakeEntry("DaffyToons",        "Failed Attempt at Plus Engine Programmer",              "https://github.com/DaffyToons",             "0A8451"));
-    m_Entries.push_back(MakeEntry("Andres",            "Creator and owner of several codes used",               "https://github.com/Slushi-Github",           "8FD9D1"));
-    m_Entries.push_back(MakeEntry("sirthegamercoder", "Indonesian translation and others PRs",                 "",                                          "7FDBFF"));
-    m_Entries.push_back(MakeEntry("Hansuke H",        "Vietnamese translation and alphabet sprite",            "https://www.facebook.com/hansuke.hotaroshi", "FF6C8D"));
-    m_Entries.push_back(MakeEntry("TheoDev",           "Owner, Lead coder of Funkin Modchart",                  "https://github.com/TheoDevelops",            "FFB347"));
+    m_Entries.push_back(MakeEntry("Lenin Asto",       "len",         "Programmer of Plus Engine",                             "https://www.youtube.com/@Lenin_Anonimo_Of", "03FC88"));
+    m_Entries.push_back(MakeEntry("Legacy Odyssey",   "",            "Co-programmer of Plus Engine",                         "https://www.youtube.com/@LegacyOdyssey",    "8E07C2"));
+    m_Entries.push_back(MakeEntry("DaffyToons",       "daffytoons",  "Failed Attempt at Plus Engine Programmer",              "https://github.com/DaffyToons",             "0A8451"));
+    m_Entries.push_back(MakeEntry("Andres",           "slu",         "Creator and owner of several codes used",               "https://github.com/Slushi-Github",          "8FD9D1"));
+    m_Entries.push_back(MakeEntry("sirthegamercoder", "sir",         "Indonesian translation and others PRs",                 "",                                          "7FDBFF"));
+    m_Entries.push_back(MakeEntry("Hansuke H",        "hansu",       "Vietnamese translation and alphabet sprite",            "https://www.facebook.com/hansuke.hotaroshi", "FF6C8D"));
+    m_Entries.push_back(MakeEntry("TheoDev",          "theo",        "Owner, Lead coder of Funkin Modchart",                  "https://github.com/TheoDevelops",           "FFB347"));
     m_Entries.push_back(MakeSep());
     // Mobile Porting Team
     m_Entries.push_back(MakeHeader("Mobile Porting Team"));
-    m_Entries.push_back(MakeEntry("HomuHomu833",       "Head Porter of Psych Engine",                           "https://youtube.com/@HomuHomu833",           "FFE7C0"));
-    m_Entries.push_back(MakeEntry("Karim Akra",        "Second Porter of Psych Engine",                         "https://youtube.com/@Karim0690",             "FFB4F0"));
-    m_Entries.push_back(MakeEntry("Moxie",             "Helper of Psych Engine Mobile",                         "https://twitter.com/moxie_specalist",        "F592C4"));
+    m_Entries.push_back(MakeEntry("HomuHomu833",      "homura",      "Head Porter of Psych Engine",                           "https://youtube.com/@HomuHomu833",          "FFE7C0"));
+    m_Entries.push_back(MakeEntry("Karim Akra",       "karim",       "Second Porter of Psych Engine",                         "https://youtube.com/@Karim0690",            "FFB4F0"));
+    m_Entries.push_back(MakeEntry("Moxie",            "moxie",       "Helper of Psych Engine Mobile",                         "https://twitter.com/moxie_specalist",       "F592C4"));
     m_Entries.push_back(MakeSep());
     // Psych Team
     m_Entries.push_back(MakeHeader("Psych Team"));
-    m_Entries.push_back(MakeEntry("Shadow Mario",      "Main Programmer and Head of Psych Engine",              "https://ko-fi.com/shadowmario",              "444444"));
-    m_Entries.push_back(MakeEntry("Riveren",           "Main Artist/Animator of Psych Engine",                  "https://x.com/riverennn",                   "14967B"));
-    m_Entries.push_back(MakeEntry("bb-panzu",          "Ex-Programmer of Psych Engine",                         "https://x.com/bbsub3",                      "3E813A"));
+    m_Entries.push_back(MakeEntry("Shadow Mario",     "shadowmario", "Main Programmer and Head of Psych Engine",              "https://ko-fi.com/shadowmario",             "444444"));
+    m_Entries.push_back(MakeEntry("Riveren",          "riveren",     "Main Artist/Animator of Psych Engine",                  "https://x.com/riverennn",                  "14967B"));
+    m_Entries.push_back(MakeEntry("bb-panzu",         "bb",          "Ex-Programmer of Psych Engine",                         "https://x.com/bbsub3",                     "3E813A"));
     m_Entries.push_back(MakeSep());
     // Psych Contributors
     m_Entries.push_back(MakeHeader("Psych Contributors"));
-    m_Entries.push_back(MakeEntry("crowplexus",        "Linux Support, HScript Iris, Input System v3",          "https://twitter.com/IamMorwen",              "CFCFCF"));
-    m_Entries.push_back(MakeEntry("Kamizeta",          "Creator of Pessy, Psych Engine's mascot",               "https://www.instagram.com/cewweey/",         "D21C11"));
-    m_Entries.push_back(MakeEntry("MaxNeton",          "Loading Screen Easter Egg Artist/Animator",             "https://bsky.app/profile/maxneton.bsky.social","3C2E4E"));
-    m_Entries.push_back(MakeEntry("Keoiki",            "Note Splash Animations and Latin Alphabet",             "https://x.com/Keoiki_",                     "D2D2D2"));
-    m_Entries.push_back(MakeEntry("SqirraRNG",         "Crash Handler and Chart Editor's Waveform base code",   "https://x.com/gedehari",                    "E1843A"));
-    m_Entries.push_back(MakeEntry("EliteMasterEric",   "Runtime Shaders support and Other PRs",                 "https://x.com/EliteMasterEric",             "FFBD40"));
-    m_Entries.push_back(MakeEntry("MAJigsaw77",        ".MP4 Video Loader Library (hxvlc)",                     "https://x.com/MAJigsaw77",                  "5F5F5F"));
-    m_Entries.push_back(MakeEntry("iFlicky",           "Composer of Psync and Tea Time",                        "https://x.com/flicky_i",                    "9E29CF"));
-    m_Entries.push_back(MakeEntry("KadeDev",           "Fixed issues on Chart Editor and Other PRs",            "https://x.com/kade0912",                    "64A250"));
-    m_Entries.push_back(MakeEntry("superpowers04",     "LUA JIT Fork",                                          "https://x.com/superpowers04",               "B957ED"));
-    m_Entries.push_back(MakeEntry("CheemsAndFriends",  "Creator of FlxAnimate",                                 "https://x.com/CheemsnFriendos",             "E1E1E1"));
+    m_Entries.push_back(MakeEntry("crowplexus",       "crowplexus",  "Linux Support, HScript Iris, Input System v3",          "https://twitter.com/IamMorwen",             "CFCFCF"));
+    m_Entries.push_back(MakeEntry("Kamizeta",         "kamizeta",    "Creator of Pessy, Psych Engine's mascot",               "https://www.instagram.com/cewweey/",        "D21C11"));
+    m_Entries.push_back(MakeEntry("MaxNeton",         "maxneton",    "Loading Screen Easter Egg Artist/Animator",             "https://bsky.app/profile/maxneton.bsky.social", "3C2E4E"));
+    m_Entries.push_back(MakeEntry("Keoiki",           "keoiki",      "Note Splash Animations and Latin Alphabet",             "https://x.com/Keoiki_",                    "D2D2D2"));
+    m_Entries.push_back(MakeEntry("SqirraRNG",        "sqirra",      "Crash Handler and Chart Editor's Waveform base code",   "https://x.com/gedehari",                   "E1843A"));
+    m_Entries.push_back(MakeEntry("EliteMasterEric",  "mastereric",  "Runtime Shaders support and Other PRs",                 "https://x.com/EliteMasterEric",            "FFBD40"));
+    m_Entries.push_back(MakeEntry("MAJigsaw77",       "majigsaw",    ".MP4 Video Loader Library (hxvlc)",                     "https://x.com/MAJigsaw77",                 "5F5F5F"));
+    m_Entries.push_back(MakeEntry("iFlicky",          "flicky",      "Composer of Psync and Tea Time",                        "https://x.com/flicky_i",                   "9E29CF"));
+    m_Entries.push_back(MakeEntry("KadeDev",          "kade",        "Fixed issues on Chart Editor and Other PRs",            "https://x.com/kade0912",                   "64A250"));
+    m_Entries.push_back(MakeEntry("superpowers04",    "superpowers04", "LUA JIT Fork",                                        "https://x.com/superpowers04",              "B957ED"));
+    m_Entries.push_back(MakeEntry("CheemsAndFriends", "cheems",      "Creator of FlxAnimate",                                 "https://x.com/CheemsnFriendos",            "E1E1E1"));
     m_Entries.push_back(MakeSep());
     // Funkin' Crew
     m_Entries.push_back(MakeHeader("Funkin' Crew"));
-    m_Entries.push_back(MakeEntry("ninjamuffin99",     "Programmer of Friday Night Funkin'",                    "https://x.com/ninja_muffin99",              "CF2D2D"));
-    m_Entries.push_back(MakeEntry("PhantomArcade",     "Animator of Friday Night Funkin'",                      "https://x.com/PhantomArcade3K",             "FADC45"));
-    m_Entries.push_back(MakeEntry("evilsk8r",          "Artist of Friday Night Funkin'",                        "https://x.com/evilsk8r",                    "5ABD4B"));
-    m_Entries.push_back(MakeEntry("kawaisprite",       "Composer of Friday Night Funkin'",                      "https://x.com/kawaisprite",                 "378FC7"));
+    m_Entries.push_back(MakeEntry("ninjamuffin99",    "ninjamuffin99", "Programmer of Friday Night Funkin'",                    "https://x.com/ninja_muffin99",             "CF2D2D"));
+    m_Entries.push_back(MakeEntry("PhantomArcade",    "phantomarcade", "Animator of Friday Night Funkin'",                      "https://x.com/PhantomArcade3K",            "FADC45"));
+    m_Entries.push_back(MakeEntry("evilsk8r",         "evilsk8r",      "Artist of Friday Night Funkin'",                        "https://x.com/evilsk8r",                   "5ABD4B"));
+    m_Entries.push_back(MakeEntry("kawaisprite",      "kawaisprite",   "Composer of Friday Night Funkin'",                      "https://x.com/kawaisprite",                "378FC7"));
     m_Entries.push_back(MakeSep());
     // Discord
     m_Entries.push_back(MakeHeader("Psych Engine Discord"));
-    m_Entries.push_back(MakeEntry("Join the Psych Ward!", "", "https://discord.gg/2ka77eMXDv",                   "5165F6"));
+    m_Entries.push_back(MakeEntry("Join the Psych Ward!", "discord", "", "https://discord.gg/2ka77eMXDv",       "5165F6"));
 }
 
 // ---------------------------------------------------------------------------
@@ -106,6 +108,7 @@ static void LoadAssets_Credits(CreditsState* self,
                                 SDL_Renderer* renderer,
                                 std::vector<CreditEntry>& entries,
                                 std::vector<Alphabet>& labels,
+                                std::vector<Sprite>& icons,
                                 int& curSelected,
                                 float& lerpY,
                                 float& tgtR, float& tgtG, float& tgtB,
@@ -114,11 +117,24 @@ static void LoadAssets_Credits(CreditsState* self,
 
     labels.clear();
     labels.resize(entries.size());
+    icons.clear();
+    icons.resize(entries.size());
 
     for (int i = 0; i < static_cast<int>(entries.size()); i++) {
         const auto& e = entries[i];
         bool bold = e.isHeader;
         labels[i].SetText(e.name, bold);
+
+        if (!e.isHeader && !e.name.empty()) {
+            std::string iconKey = e.iconName.empty() ? "credits/missing_icon" : "credits/" + e.iconName;
+            std::string iconPath = Paths::Image(iconKey);
+            if (iconPath.empty()) {
+                iconPath = Paths::Image("credits/missing_icon");
+            }
+            if (!iconPath.empty()) {
+                icons[i].Load(renderer, iconPath);
+            }
+        }
     }
 
     // Find first selectable entry
@@ -165,6 +181,13 @@ void CreditsState::ChangeSelection(int delta) {
     m_TgtG = static_cast<float>(e.bgG);
     m_TgtB = static_cast<float>(e.bgB);
 
+    if (delta != 0) {
+        const std::string sfx = Paths::Sound("scrollMenu");
+        if (!sfx.empty()) {
+            SoundPlayer::Play(sfx, 0.4f);
+        }
+    }
+
     Logger::Info("[CreditsState] Selected: " + e.name);
 }
 
@@ -190,13 +213,24 @@ void CreditsState::HandleEvent(const SDL_Event& e) {
         case SDLK_SPACE:
             if (m_CurSelected < static_cast<int>(m_Entries.size())) {
                 const auto& entry = m_Entries[m_CurSelected];
-                if (!entry.url.empty())
+                if (!entry.url.empty()) {
+                    const std::string sfx = Paths::Sound("confirmMenu");
+                    if (!sfx.empty()) {
+                        SoundPlayer::Play(sfx, 0.7f);
+                    }
                     Logger::Info("[CreditsState] URL: " + entry.url);
+                }
             }
             break;
         case SDLK_ESCAPE:
             m_Quitting = true;
-            StateManager::Get().Switch(std::make_unique<MainMenuState>());
+            {
+                const std::string sfx = Paths::Sound("cancelMenu");
+                if (!sfx.empty()) {
+                    SoundPlayer::Play(sfx, 1.0f);
+                }
+                StateManager::Get().SwitchWithFade(std::make_unique<MainMenuState>(), 0.7f);
+            }
             break;
         default: break;
     }
@@ -216,6 +250,14 @@ void CreditsState::Update(float dt) {
     m_BgR += (m_TgtR - m_BgR) * std::min(1.0f, dt * COLOR_SPD);
     m_BgG += (m_TgtG - m_BgG) * std::min(1.0f, dt * COLOR_SPD);
     m_BgB += (m_TgtB - m_BgB) * std::min(1.0f, dt * COLOR_SPD);
+
+    if (MusicPlayer::IsPlaying() && MusicPlayer::GetVolume() < 0.7f) {
+        MusicPlayer::SetVolume((std::min)(0.7f, MusicPlayer::GetVolume() + dt * 0.5f));
+    }
+
+    m_Background.colorR = static_cast<Uint8>(m_BgR);
+    m_Background.colorG = static_cast<Uint8>(m_BgG);
+    m_Background.colorB = static_cast<Uint8>(m_BgB);
 
     // Update label X/Y positions to follow scroll
     int n = static_cast<int>(m_Labels.size());
@@ -248,6 +290,13 @@ void CreditsState::Update(float dt) {
         }
 
         m_Labels[i].visible = (std::abs(relY) < 6.0f);
+
+        if (i < static_cast<int>(m_Icons.size()) && m_Icons[i].IsLoaded()) {
+            m_Icons[i].visible = m_Labels[i].visible && !m_Entries[i].isHeader;
+            m_Icons[i].alpha = m_Labels[i].alpha;
+            m_Icons[i].x = m_Labels[i].x + m_Labels[i].GetWidth() + 10.0f;
+            m_Icons[i].y = m_Labels[i].y;
+        }
     }
 
     MusicBeatState::Update(dt);
@@ -260,23 +309,34 @@ void CreditsState::Update(float dt) {
 void CreditsState::Render(SDL_Renderer* renderer) {
     if (!m_AssetsLoaded) {
         BuildEntries();
+        m_Background.Load(renderer, Paths::Image("menuDesat"));
+        if (m_Background.texWidth > 0) {
+            float scl = static_cast<float>(SCR_W) / m_Background.texWidth * 1.175f;
+            m_Background.SetScale(scl);
+            m_Background.x = (SCR_W - m_Background.GetWidth()) * 0.5f;
+            m_Background.y = (SCR_H - m_Background.GetHeight()) * 0.5f;
+        }
         LoadAssets_Credits(this, renderer, m_Entries, m_Labels,
+                           m_Icons,
                            m_CurSelected, m_LerpY,
                            m_TgtR, m_TgtG, m_TgtB,
                            m_AssetsLoaded);
     }
 
-    // BG fill with lerped color
-    SDL_SetRenderDrawColor(renderer,
-        static_cast<Uint8>(m_BgR),
-        static_cast<Uint8>(m_BgG),
-        static_cast<Uint8>(m_BgB),
-        255);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
+
+    if (m_Background.IsLoaded()) {
+        m_Background.Draw(renderer);
+    }
 
     // Draw all visible labels
     for (auto& lbl : m_Labels) {
         if (lbl.visible) lbl.Draw(renderer);
+    }
+
+    for (auto& icon : m_Icons) {
+        if (icon.visible) icon.Draw(renderer);
     }
 
     // Desc text for selected entry (drawn as small overlay at bottom)

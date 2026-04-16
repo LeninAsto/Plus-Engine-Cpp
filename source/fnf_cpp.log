@@ -1,0 +1,36 @@
+=========================================
+  FNF Plus Engine - C++ Edition Log
+  Started: 23:23:31
+=========================================
+[23:23:31] [INFO]  Logger initialized
+[23:23:31] [INFO]  ========================================
+[23:23:31] [INFO]    FNF Plus Engine - C++ Rewrite
+[23:23:31] [INFO]  ========================================
+[23:23:31] [INFO]  [OK] Paths initialized - root: C:/Users/USUARIO/Desktop/Plus-Engine-Cpp/assets
+[23:23:31] [INFO]  Runtime plugins loaded from: C:\Users\USUARIO\Desktop\Plus-Engine-Cpp\build\plugins
+[23:23:31] [INFO]  Initializing SDL2...
+[23:23:31] [INFO]  [OK] SDL2 initialized successfully!
+[23:23:31] [INFO]  [OK] Window created: 1280x720
+[23:23:32] [INFO]  [OK] Renderer created with VSync enabled
+[23:23:32] [INFO]  [OK] TextureCache initialized (PNG support)
+[23:23:32] [WARN]  MusicPlayer: Some audio formats unavailable: MP3 support not available
+[23:23:32] [INFO]  [OK] MusicPlayer initialized (OGG/MP3 support)
+[23:23:32] [INFO]  ========================================
+[23:23:32] [INFO]    Application initialized successfully!
+[23:23:32] [INFO]    Press ESC or close window to exit
+[23:23:32] [INFO]  ========================================
+[23:23:32] [INFO]  DebugOverlay font loaded: C:/Users/USUARIO/Desktop/Plus-Engine-Cpp/assets/fonts/inter.otf
+[23:23:32] [INFO]  [TitleState] Enter
+[23:23:32] [INFO]  [Alphabet] Parsed 58 bold + 32 normal frames
+[23:23:32] [INFO]  [Alphabet] Atlas loaded OK
+[23:23:32] [INFO]  [OK] Playing music: C:/Users/USUARIO/Desktop/Plus-Engine-Cpp/assets/shared/music/freakyMenu.ogg
+[23:23:32] [INFO]  [TitleState] Playing freakyMenu
+[23:23:42] [INFO]  [TitleState] Intro skipped
+[23:23:53] [INFO]  Window close requested
+[23:23:54] [INFO]  ========================================
+[23:23:54] [INFO]  Shutting down application...
+[23:23:54] [INFO]  [OK] Shutdown complete!
+[23:23:54] [INFO]  ========================================
+=========================================
+  Log ended: 23:23:54
+=========================================

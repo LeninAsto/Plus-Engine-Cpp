@@ -17,6 +17,7 @@
 
 #include "../core/MusicBeatState.h"
 #include "../graphics/Alphabet.h"
+#include "../graphics/Sprite.h"
 #include <vector>
 #include <string>
 #include <array>
@@ -25,6 +26,7 @@ namespace FNF {
 
 struct CreditEntry {
     std::string name;        // display name (empty = blank separator)
+    std::string iconName;    // icon inside assets/shared/images/credits/
     std::string desc;        // description shown at the bottom
     std::string url;         // link (logged on ENTER)
     uint8_t     bgR = 0x22; // background color
@@ -58,6 +60,8 @@ private:
     // Displayed Alphabet rows (one per entry)
     // -----------------------------------------------------------------------
     std::vector<Alphabet> m_Labels;
+    std::vector<Sprite>   m_Icons;
+    Sprite                m_Background;
 
     // -----------------------------------------------------------------------
     // Selection
@@ -94,11 +98,13 @@ private:
     }
 
     static CreditEntry MakeEntry(const std::string& name,
+                                  const std::string& icon = "",
                                   const std::string& desc = "",
                                   const std::string& url  = "",
                                   const std::string& hex  = "222222") {
         CreditEntry e;
         e.name     = name;
+        e.iconName = icon;
         e.desc     = desc;
         e.url      = url;
         e.isHeader = false;

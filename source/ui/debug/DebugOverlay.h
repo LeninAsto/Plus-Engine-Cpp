@@ -8,8 +8,7 @@
  * Minimal  : FPS | delay ms | avg ms | GC mem
  * Verbose  : above + peak mem + task mem (working set)
  *
- * Rendered with a tiny 4×6 pixel bitmap font embedded as a C array,
- * no SDL_ttf dependency required.
+ * Rendered with Inter loaded from assets/fonts/inter.otf via SDL_ttf.
  *
  * Author: LeninAsto
  * Date: March 2026
@@ -18,9 +17,9 @@
 #pragma once
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <string>
 #include <deque>
-#include <cstdint>
 
 namespace FNF {
 
@@ -65,20 +64,14 @@ private:
     float m_DisplayMem  = 0.0f;      // lerped GC mem (MB)
     float m_PeakMem     = 0.0f;      // peak GC mem (MB)
 
-    SDL_Texture* m_FontTex = nullptr; // 4×6 glyph atlas
+    TTF_Font* m_Font = nullptr;
 
-    // -----------------------------------------------------------------------
-    // Font helpers (4-wide × 6-tall pixel glyphs, ASCII 32-127)
-    // -----------------------------------------------------------------------
-    void BuildFont(SDL_Renderer* renderer);
+    void BuildFont();
 
-    /** Draw a single ASCII character at pixel pos (px, py), returns next x. */
-    int DrawChar(SDL_Renderer* renderer, int px, int py, char c,
-                 Uint8 r, Uint8 g, Uint8 b) const;
-
-    /** Draw a string, returns total pixel width used. */
     void DrawString(SDL_Renderer* renderer, int px, int py,
                     const std::string& s, Uint8 r, Uint8 g, Uint8 b) const;
+
+    SDL_Point MeasureString(const std::string& s) const;
 
     /** Draw filled rect helper */
     static void FillRect(SDL_Renderer* r, int x, int y, int w, int h,
@@ -90,11 +83,9 @@ private:
     static float GetGCMemoryMB();       // haxe GC mem ≈ heap committed memory
     static float GetTaskMemoryMB();     // process working set (like Task Manager)
 
-    static constexpr int GLYPH_W      = 4;  // pixels per glyph column
-    static constexpr int GLYPH_H      = 6;  // pixels per glyph row
-    static constexpr int GLYPH_SCALE  = 2;  // draw at 2× for readability
-    static constexpr int LINE_H       = (GLYPH_H + 1) * GLYPH_SCALE;
-    static constexpr int PAD          = 4;  // overlay padding
+    static constexpr int FONT_SIZE    = 14;
+    static constexpr int LINE_H       = 18;
+    static constexpr int PAD          = 6;
 };
 
 } // namespace FNF
