@@ -104,6 +104,7 @@ public:
     /** Draw to renderer */
     void Draw(SDL_Renderer* renderer) const;
     void Draw(SDL_Renderer* renderer, const SDL_Rect* clipRect) const;
+    void SetTexture(SDL_Texture* texture) { m_Texture = texture; }
 
     // -----------------------------------------------------------------------
     // Queries

@@ -284,6 +284,10 @@ void FreeplayState::LoadAssets(SDL_Renderer* renderer) {
 
     for (size_t i = 0; i < m_Songs.size(); ++i) {
         m_Labels[i].SetText(m_Songs[i].name, true);
+        Logger::Info("[FreeplayState] Alphabet label '" + m_Songs[i].name
+            + "' width=" + std::to_string(static_cast<int>(m_Labels[i].GetWidth()))
+            + " height=" + std::to_string(static_cast<int>(m_Labels[i].GetHeight()))
+            + " visible=" + std::string(m_Labels[i].GetWidth() > 0.0f ? "yes" : "no"));
         std::string iconPath = ResolveIconPath(m_Songs[i].iconId);
         if (!iconPath.empty()) {
             m_Icons[i].Load(renderer, iconPath);

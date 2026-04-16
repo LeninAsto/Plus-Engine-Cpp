@@ -1,5 +1,6 @@
 #include "Note.h"
 
+#include "../core/Logger.h"
 #include "../data/Paths.h"
 #include "../graphics/RGBPalette.h"
 
@@ -52,6 +53,11 @@ bool Note::EnsureTemplates(SDL_Renderer* renderer) {
     }
 
     for (int lane = 0; lane < 4; ++lane) {
+        SDL_Texture* paletteTexture = RGBPalette::LoadNoteAtlas(renderer, imagePath, lane);
+        if (!paletteTexture) {
+            return false;
+        }
+
         if (!s_HeadTemplates[lane].Load(renderer, imagePath, xmlPath)) {
             return false;
         }
@@ -61,6 +67,10 @@ bool Note::EnsureTemplates(SDL_Renderer* renderer) {
         if (!s_TailTemplates[lane].Load(renderer, imagePath, xmlPath)) {
             return false;
         }
+
+        s_HeadTemplates[lane].SetTexture(paletteTexture);
+        s_BodyTemplates[lane].SetTexture(paletteTexture);
+        s_TailTemplates[lane].SetTexture(paletteTexture);
 
         s_HeadTemplates[lane].scaleX = kScale;
         s_HeadTemplates[lane].scaleY = kScale;
@@ -73,13 +83,19 @@ bool Note::EnsureTemplates(SDL_Renderer* renderer) {
         s_BodyTemplates[lane].AddByIndices("idle", kBodyPrefixes[lane], { 0 }, 24, false);
         s_TailTemplates[lane].AddByIndices("idle", kTailPrefixes[lane], { 0 }, 24, false);
 
-        RGBPalette::ApplyLaneTint(s_HeadTemplates[lane], lane, 1.0f);
-        RGBPalette::ApplyLaneTint(s_BodyTemplates[lane], lane, 0.92f);
-        RGBPalette::ApplyLaneTint(s_TailTemplates[lane], lane, 1.08f);
+        RGBPalette::ApplyNeutralBrightness(s_HeadTemplates[lane], 1.0f);
+        RGBPalette::ApplyNeutralBrightness(s_BodyTemplates[lane], 1.0f);
+        RGBPalette::ApplyNeutralBrightness(s_TailTemplates[lane], 1.0f);
 
         s_HeadTemplates[lane].Play("idle", true);
         s_BodyTemplates[lane].Play("idle", true);
         s_TailTemplates[lane].Play("idle", true);
+
+        const RGBPalette::LanePaletteColors palette = RGBPalette::LanePalette(lane);
+        Logger::Info("[Note] lane=" + std::to_string(lane)
+            + " fill=(" + std::to_string(palette.redChannel.r) + "," + std::to_string(palette.redChannel.g) + "," + std::to_string(palette.redChannel.b)
+            + ") glow=(" + std::to_string(palette.greenChannel.r) + "," + std::to_string(palette.greenChannel.g) + "," + std::to_string(palette.greenChannel.b)
+            + ") outline=(" + std::to_string(palette.blueChannel.r) + "," + std::to_string(palette.blueChannel.g) + "," + std::to_string(palette.blueChannel.b) + ")");
     }
 
     s_TemplatesLoaded = true;

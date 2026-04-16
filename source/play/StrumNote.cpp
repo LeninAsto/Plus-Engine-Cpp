@@ -1,5 +1,6 @@
 #include "StrumNote.h"
 
+#include "../core/Logger.h"
 #include "../data/Paths.h"
 #include "../graphics/RGBPalette.h"
 
@@ -53,6 +54,19 @@ bool StrumNote::Load(SDL_Renderer* renderer, int lane, bool player) {
         return false;
     }
 
+    m_BaseTexture = TextureCache::Load(renderer, imagePath);
+    m_PaletteTexture = RGBPalette::LoadNoteAtlas(renderer, imagePath, lane);
+    if (!m_BaseTexture || !m_PaletteTexture) {
+        return false;
+    }
+
+    const RGBPalette::LanePaletteColors palette = RGBPalette::LanePalette(lane);
+    Logger::Info("[StrumNote] lane=" + std::to_string(lane)
+        + " static=baseAtlas active=paletteAtlas rgb=("
+        + std::to_string(palette.redChannel.r) + "," + std::to_string(palette.redChannel.g) + "," + std::to_string(palette.redChannel.b) + ") glow=("
+        + std::to_string(palette.greenChannel.r) + "," + std::to_string(palette.greenChannel.g) + "," + std::to_string(palette.greenChannel.b) + ") outline=("
+        + std::to_string(palette.blueChannel.r) + "," + std::to_string(palette.blueChannel.g) + "," + std::to_string(palette.blueChannel.b) + ")");
+
     m_Sprite.scaleX = kScale;
     m_Sprite.scaleY = kScale;
     m_Sprite.AddByPrefix("static", kStaticPrefixes[lane], 24, false);
@@ -61,7 +75,8 @@ bool StrumNote::Load(SDL_Renderer* renderer, int lane, bool player) {
     m_Sprite.Play("static", true);
     m_LogicalWidth = m_Sprite.GetWidth();
     m_LogicalHeight = m_Sprite.GetHeight();
-    ApplyLanePalette("static");
+    m_Sprite.SetTexture(m_BaseTexture);
+    RGBPalette::ApplyNeutralBrightness(m_Sprite, 1.0f);
     UpdateVisualPlacement();
     return true;
 }
@@ -114,14 +129,18 @@ SDL_Color StrumNote::GetLaneColor() const {
 }
 
 void StrumNote::ApplyLanePalette(const std::string& animName) {
-    float brightness = 0.88f;
-    if (animName == "pressed") {
-        brightness = 1.0f;
-    } else if (animName == "confirm") {
-        brightness = 1.15f;
+    if (animName == "static") {
+        m_Sprite.SetTexture(m_BaseTexture);
+        RGBPalette::ApplyNeutralBrightness(m_Sprite, 1.0f);
+        return;
     }
 
-    RGBPalette::ApplyLaneTint(m_Sprite, m_Lane, brightness);
+    m_Sprite.SetTexture(m_PaletteTexture);
+    float brightness = 1.0f;
+    if (animName == "confirm") {
+        brightness = 1.08f;
+    }
+    RGBPalette::ApplyNeutralBrightness(m_Sprite, brightness);
 }
 
 void StrumNote::PlayAnim(const std::string& name, bool forceRestart) {

@@ -36,6 +36,8 @@ private:
     void UpdateVisualPlacement();
 
     AnimatedSprite m_Sprite;
+    SDL_Texture* m_BaseTexture = nullptr;
+    SDL_Texture* m_PaletteTexture = nullptr;
     int m_Lane = 0;
     bool m_Player = false;
     bool m_Pressed = false;

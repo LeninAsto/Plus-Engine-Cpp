@@ -28,6 +28,13 @@ public:
      * Returns nullptr on failure.
      */
     static SDL_Texture* Load(SDL_Renderer* renderer, const std::string& path);
+    static SDL_Texture* LoadPaletteMapped(SDL_Renderer* renderer,
+                                          const std::string& path,
+                                          const std::string& cacheKey,
+                                          SDL_Color redChannel,
+                                          SDL_Color greenChannel,
+                                          SDL_Color blueChannel,
+                                          float mult = 1.0f);
 
     /**
      * Free a specific texture from the cache.

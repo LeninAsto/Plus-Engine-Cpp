@@ -534,12 +534,6 @@ void PlayState::Render(SDL_Renderer* renderer) {
     SDL_RenderFillRect(renderer, &timeFill);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 
-    const SDL_Color white = { 255, 255, 255, 255 };
-    const SDL_Color soft = { 220, 220, 220, 255 };
-    DrawText(renderer, m_TitleFont, m_Chart.songName, 34, 20, white, false);
-    DrawText(renderer, m_Font, "Stage: " + m_StageData.stageName + "   BPM: " + std::to_string(static_cast<int>(m_Chart.bpm)) + "   Hits: " + std::to_string(m_SongHits) + "   Misses: " + std::to_string(m_SongMisses), 34, 56, soft, false);
-    DrawText(renderer, m_Font, FormatSongTime(Conductor::songPosition) + " / " + FormatSongTime(m_SongEndTimeMs), 640, 24, white, true);
-    DrawText(renderer, m_Font, "ESC back to Freeplay   camGame/camHUD/camOther base listas   Upscroll activo", 640, 669, white, true);
 }
 
 } // namespace FNF
