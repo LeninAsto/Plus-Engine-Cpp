@@ -25,6 +25,8 @@ public:
     float alpha   = 1.0f;   // 0.0 to 1.0
     float angle   = 0.0f;   // degrees
     bool  visible = true;
+    bool  flipX   = false;
+    bool  flipY   = false;
 
     // Color tint (default white = no tint)
     Uint8 colorR = 255;
@@ -45,6 +47,7 @@ public:
      * Render the sprite using the given renderer.
      */
     void Draw(SDL_Renderer* renderer) const;
+    void Draw(SDL_Renderer* renderer, float offsetX, float offsetY, float zoom = 1.0f) const;
 
     /**
      * Center this sprite on the screen (1280x720).

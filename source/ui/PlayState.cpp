@@ -8,11 +8,23 @@
 #include "../audio/Conductor.h"
 #include "../audio/MusicPlayer.h"
 #include "../audio/SoundPlayer.h"
+#include "../audio/VocalsPlayer.h"
 #include "../core/Logger.h"
 #include "../core/StateManager.h"
 #include "../data/Paths.h"
 
+#include <algorithm>
+#include <cmath>
+
 namespace FNF {
+
+namespace {
+
+constexpr float kAutoConfirmDuration = 0.12f;
+constexpr float kSpawnWindowMs = 3500.0f;
+constexpr float kDespawnWindowMs = 750.0f;
+
+}
 
 PlayState::PlayState(PlayRequest request, SongChartData chart, StageData stage)
     : m_Request(std::move(request))
@@ -35,6 +47,7 @@ void PlayState::Enter() {
 void PlayState::Exit() {
     CloseFonts();
     MusicPlayer::Stop();
+    VocalsPlayer::Stop();
 
     const std::string menuMusic = Paths::Music("freakyMenu");
     if (!menuMusic.empty()) {
@@ -48,6 +61,8 @@ void PlayState::Exit() {
 }
 
 void PlayState::LoadAssets(SDL_Renderer* renderer) {
+    m_Renderer = renderer;
+
     if (!TTF_WasInit() && TTF_Init() < 0) {
         Logger::Error("[PlayState] TTF_Init failed: " + std::string(TTF_GetError()));
     } else {
@@ -78,7 +93,104 @@ void PlayState::LoadAssets(SDL_Renderer* renderer) {
         m_Girlfriend.SetPosition(m_StageData.girlfriendX, m_StageData.girlfriendY);
     }
 
+    BuildGameplayScene(renderer);
+
     m_AssetsLoaded = true;
+}
+
+void PlayState::BuildGameplayScene(SDL_Renderer* renderer) {
+    m_Notes.clear();
+    m_NoteSplashes.clear();
+    m_HoldSplashes.clear();
+    m_NextNoteIndex = 0;
+    m_Health = 1.0f;
+    m_SongHits = 0;
+    m_SongMisses = 0;
+    m_EndingSong = false;
+
+    for (int lane = 0; lane < kLaneCount; ++lane) {
+        m_OpponentStrums[lane].Load(renderer, lane, false);
+
+        m_PlayerStrums[lane].Load(renderer, lane, true);
+    }
+
+    ConfigurePlayfieldMetrics();
+    ConfigureCameras();
+
+    for (int lane = 0; lane < kLaneCount; ++lane) {
+        m_OpponentStrums[lane].SetPosition(m_OpponentStrumBaseX + m_StrumSpacing * static_cast<float>(lane), m_OpponentStrumY);
+        m_PlayerStrums[lane].SetPosition(m_PlayerStrumBaseX + m_StrumSpacing * static_cast<float>(lane), m_PlayerStrumY);
+    }
+
+    m_NoteSplashes.reserve(16);
+    m_HoldSplashes.reserve(8);
+
+    m_SongEndTimeMs = 0.0f;
+    for (const ChartNote& chartNote : m_Chart.notes) {
+        m_SongEndTimeMs = std::max(m_SongEndTimeMs, chartNote.strumTime + chartNote.sustainLength + 1800.0f);
+    }
+    m_CameraFocus = m_Dad.GetCameraFocusPoint();
+    m_CameraTarget = m_CameraFocus;
+}
+
+void PlayState::ConfigurePlayfieldMetrics() {
+    constexpr float kStrumLineX = 42.0f;
+    constexpr float kStrumStartOffset = 50.0f;
+    constexpr float kHaxeSwagWidth = 160.0f * 0.7f;
+    constexpr float kStrumLineY = 50.0f;
+    constexpr float kScreenWidth = 1280.0f;
+
+    m_StrumSpacing = kHaxeSwagWidth;
+    m_OpponentStrumBaseX = kStrumLineX + kStrumStartOffset;
+    m_PlayerStrumBaseX = kStrumLineX + kStrumStartOffset + (kScreenWidth * 0.5f);
+    m_OpponentStrumY = kStrumLineY;
+    m_PlayerStrumY = kStrumLineY;
+
+    const float pixelsPerStep = m_PlayerStrums[0].GetWidth() * 0.64f;
+    m_NoteScrollSpeed = pixelsPerStep / std::max(1.0f, Conductor::stepCrochet);
+}
+
+void PlayState::ConfigureCameras() {
+    m_CamGame.zoom = m_StageData.defaultZoom;
+    m_CamHUD.zoom = 1.0f;
+    m_CamOther.zoom = 1.0f;
+}
+
+void PlayState::SpawnPendingNotes(float songPositionMs) {
+    while (m_NextNoteIndex < m_Chart.notes.size()) {
+        const ChartNote& chartNote = m_Chart.notes[m_NextNoteIndex];
+        if (chartNote.strumTime - songPositionMs > kSpawnWindowMs) {
+            break;
+        }
+
+        Note note;
+        if (note.Load(m_Renderer, chartNote.lane, chartNote.mustHit, chartNote.strumTime, chartNote.sustainLength, m_UpScroll)) {
+            note.SetStrumAnchor(chartNote.mustHit ? m_PlayerStrums[chartNote.lane] : m_OpponentStrums[chartNote.lane]);
+            note.Refresh(songPositionMs, m_NoteScrollSpeed);
+            m_Notes.push_back(std::move(note));
+        }
+
+        ++m_NextNoteIndex;
+    }
+}
+
+void PlayState::UpdateCamera(float dt, bool focusPlayer, bool focusOpponent) {
+    if (focusPlayer) {
+        m_CameraTarget = m_Boyfriend.GetCameraFocusPoint();
+        m_CameraTarget.x += m_StageData.cameraBoyfriendX;
+        m_CameraTarget.y += m_StageData.cameraBoyfriendY;
+    } else if (focusOpponent) {
+        m_CameraTarget = m_Dad.GetCameraFocusPoint();
+        m_CameraTarget.x += m_StageData.cameraOpponentX;
+        m_CameraTarget.y += m_StageData.cameraOpponentY;
+    }
+
+    const float lerp = std::min(1.0f, dt * 3.5f * std::max(0.2f, m_StageData.cameraSpeed));
+    m_CameraFocus.x += (m_CameraTarget.x - m_CameraFocus.x) * lerp;
+    m_CameraFocus.y += (m_CameraTarget.y - m_CameraFocus.y) * lerp;
+
+    m_CamGame.scrollX = m_CameraFocus.x - (1280.0f / (2.0f * m_CamGame.zoom));
+    m_CamGame.scrollY = m_CameraFocus.y - (720.0f / (2.0f * m_CamGame.zoom));
 }
 
 void PlayState::CloseFonts() {
@@ -93,34 +205,49 @@ void PlayState::CloseFonts() {
 }
 
 void PlayState::HandleEvent(const SDL_Event& e) {
-    if (e.type != SDL_KEYDOWN) {
-        return;
-    }
-
-    switch (e.key.keysym.sym) {
-        case SDLK_ESCAPE:
-            {
-                const std::string sfx = Paths::Sound("cancelMenu");
-                if (!sfx.empty()) {
-                    SoundPlayer::Play(sfx, 1.0f);
+    if (e.type == SDL_KEYDOWN && !e.key.repeat) {
+        switch (e.key.keysym.sym) {
+            case SDLK_ESCAPE:
+                {
+                    const std::string sfx = Paths::Sound("cancelMenu");
+                    if (!sfx.empty()) {
+                        SoundPlayer::Play(sfx, 1.0f);
+                    }
+                    StateManager::Get().SwitchWithFade(std::make_unique<FreeplayState>(), 0.7f);
                 }
-                StateManager::Get().SwitchWithFade(std::make_unique<FreeplayState>(), 0.7f);
-            }
-            break;
-        case SDLK_LEFT:
-            m_Boyfriend.Sing(0);
-            break;
-        case SDLK_DOWN:
-            m_Boyfriend.Sing(1);
-            break;
-        case SDLK_UP:
-            m_Boyfriend.Sing(2);
-            break;
-        case SDLK_RIGHT:
-            m_Boyfriend.Sing(3);
-            break;
-        default:
-            break;
+                break;
+            case SDLK_LEFT:
+                HandleLanePress(0);
+                break;
+            case SDLK_DOWN:
+                HandleLanePress(1);
+                break;
+            case SDLK_UP:
+                HandleLanePress(2);
+                break;
+            case SDLK_RIGHT:
+                HandleLanePress(3);
+                break;
+            default:
+                break;
+        }
+    } else if (e.type == SDL_KEYUP) {
+        switch (e.key.keysym.sym) {
+            case SDLK_LEFT:
+                HandleLaneRelease(0);
+                break;
+            case SDLK_DOWN:
+                HandleLaneRelease(1);
+                break;
+            case SDLK_UP:
+                HandleLaneRelease(2);
+                break;
+            case SDLK_RIGHT:
+                HandleLaneRelease(3);
+                break;
+            default:
+                break;
+        }
     }
 }
 
@@ -132,7 +259,72 @@ void PlayState::Update(float dt) {
     if (!m_StartedMusic) {
         m_StartedMusic = true;
         MusicPlayer::Play(m_Request.instPath, 0, 0.8f);
+        if (m_Chart.needsVoices) {
+            VocalsPlayer::Play(m_Request.playerVoicesPath, m_Request.opponentVoicesPath, 0.85f);
+        }
     }
+
+    MusicBeatState::Update(dt);
+
+    const float songPosition = Conductor::songPosition;
+    bool focusedPlayer = false;
+    bool focusedOpponent = false;
+
+    SpawnPendingNotes(songPosition);
+
+    for (StrumNote& strum : m_OpponentStrums) {
+        strum.Update(dt);
+    }
+    for (StrumNote& strum : m_PlayerStrums) {
+        strum.Update(dt);
+    }
+
+    for (Note& note : m_Notes) {
+        if (!note.IsAlive()) {
+            continue;
+        }
+
+        note.Refresh(songPosition, m_NoteScrollSpeed);
+
+        if (note.MustHit()) {
+            if (note.IsLate(songPosition)) {
+                note.MarkMissed();
+                m_Health = std::max(0.0f, m_Health - 0.07f);
+                ++m_SongMisses;
+            }
+            continue;
+        }
+
+        if (songPosition >= note.GetStrumTime()) {
+            m_Dad.Sing(note.GetLane(), note.HasSustain() ? note.GetSustainLength() / 1000.0f : 0.0f);
+            m_OpponentStrums[note.GetLane()].Confirm(kAutoConfirmDuration);
+            if (note.HasSustain()) {
+                SpawnHoldSplash(m_OpponentStrums[note.GetLane()], note.GetLane(), note.GetSustainLength());
+            }
+            note.MarkHit();
+            m_Health = std::max(0.0f, m_Health - 0.015f);
+            focusedOpponent = true;
+        }
+    }
+
+    for (NoteSplash& splash : m_NoteSplashes) {
+        splash.Update(dt);
+    }
+    for (HoldSplash& splash : m_HoldSplashes) {
+        splash.Update(dt);
+    }
+
+    m_Notes.erase(std::remove_if(m_Notes.begin(), m_Notes.end(), [](const Note& note) {
+        return !note.IsAlive();
+    }), m_Notes.end());
+
+    m_NoteSplashes.erase(std::remove_if(m_NoteSplashes.begin(), m_NoteSplashes.end(), [](const NoteSplash& splash) {
+        return !splash.IsAlive();
+    }), m_NoteSplashes.end());
+
+    m_HoldSplashes.erase(std::remove_if(m_HoldSplashes.begin(), m_HoldSplashes.end(), [](const HoldSplash& splash) {
+        return !splash.IsAlive();
+    }), m_HoldSplashes.end());
 
     m_Dad.Update(dt);
     m_Boyfriend.Update(dt);
@@ -140,7 +332,15 @@ void PlayState::Update(float dt) {
         m_Girlfriend.Update(dt);
     }
 
-    MusicBeatState::Update(dt);
+    UpdateCamera(dt, focusedPlayer, focusedOpponent);
+
+    m_Notes.erase(std::remove_if(m_Notes.begin(), m_Notes.end(), [songPosition](const Note& note) {
+        return !note.IsAlive() || songPosition > (note.GetStrumTime() + kDespawnWindowMs);
+    }), m_Notes.end());
+
+    if (!m_EndingSong && songPosition >= m_SongEndTimeMs) {
+        EndSong();
+    }
 }
 
 void PlayState::BeatHit() {
@@ -149,6 +349,105 @@ void PlayState::BeatHit() {
     if (!m_StageData.hideGirlfriend) {
         m_Girlfriend.Dance();
     }
+}
+
+void PlayState::HandleLanePress(int lane) {
+    if (!m_AssetsLoaded || lane < 0 || lane >= kLaneCount) {
+        return;
+    }
+
+    m_PlayerStrums[lane].Press();
+
+    Note* bestNote = nullptr;
+    float bestDistance = Note::kDefaultHitWindowMs + 1.0f;
+    for (Note& note : m_Notes) {
+        if (!note.IsAlive() || !note.MustHit() || note.GetLane() != lane) {
+            continue;
+        }
+
+        if (!note.CanBeHit(Conductor::songPosition)) {
+            continue;
+        }
+
+        const float distance = std::abs(Conductor::songPosition - note.GetStrumTime());
+        if (distance < bestDistance) {
+            bestDistance = distance;
+            bestNote = &note;
+        }
+    }
+
+    if (!bestNote) {
+        return;
+    }
+
+    bestNote->MarkHit();
+    m_PlayerStrums[lane].Confirm(kAutoConfirmDuration);
+    SpawnNoteSplash(m_PlayerStrums[lane], lane);
+    ++m_SongHits;
+    m_Health = std::min(2.0f, m_Health + 0.035f);
+    m_CameraTarget = m_Boyfriend.GetCameraFocusPoint();
+    m_CameraTarget.x += m_StageData.cameraBoyfriendX;
+    m_CameraTarget.y += m_StageData.cameraBoyfriendY;
+
+    if (bestNote->HasSustain()) {
+        const float remainingDuration = std::max(0.0f, bestNote->GetHoldEndTime() - Conductor::songPosition);
+        m_Boyfriend.Hold(lane, remainingDuration / 1000.0f);
+        SpawnHoldSplash(m_PlayerStrums[lane], lane, remainingDuration);
+    } else {
+        m_Boyfriend.Sing(lane);
+    }
+}
+
+void PlayState::HandleLaneRelease(int lane) {
+    if (!m_AssetsLoaded || lane < 0 || lane >= kLaneCount) {
+        return;
+    }
+
+    m_PlayerStrums[lane].Release();
+    m_Boyfriend.StopHold(lane);
+}
+
+void PlayState::SpawnNoteSplash(const StrumNote& strum, int lane) {
+    if (!m_Renderer) {
+        return;
+    }
+
+    NoteSplash splash;
+    if (splash.Spawn(m_Renderer, strum, lane)) {
+        m_NoteSplashes.push_back(std::move(splash));
+    }
+}
+
+void PlayState::SpawnHoldSplash(const StrumNote& strum, int lane, float remainingDurationMs) {
+    if (!m_Renderer || remainingDurationMs <= 0.0f) {
+        return;
+    }
+
+    HoldSplash splash;
+    if (splash.Spawn(m_Renderer, strum, lane, remainingDurationMs)) {
+        m_HoldSplashes.push_back(std::move(splash));
+    }
+}
+
+void PlayState::EndSong() {
+    if (m_EndingSong) {
+        return;
+    }
+
+    m_EndingSong = true;
+    MusicPlayer::Stop();
+    VocalsPlayer::Stop();
+    StateManager::Get().SwitchWithFade(std::make_unique<FreeplayState>(), 0.45f);
+}
+
+std::string PlayState::FormatSongTime(float timeMs) const {
+    const int totalSeconds = std::max(0, static_cast<int>(timeMs / 1000.0f));
+    const int minutes = totalSeconds / 60;
+    const int seconds = totalSeconds % 60;
+
+    char buffer[16];
+    std::snprintf(buffer, sizeof(buffer), "%d:%02d", minutes, seconds);
+    return std::string(buffer);
 }
 
 void PlayState::DrawText(SDL_Renderer* renderer, TTF_Font* font, const std::string& text,
@@ -182,12 +481,28 @@ void PlayState::Render(SDL_Renderer* renderer) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
-    m_Stage.Draw(renderer);
+    m_Stage.Draw(renderer, m_CamGame.scrollX, m_CamGame.scrollY, m_CamGame.zoom);
     if (!m_StageData.hideGirlfriend) {
-        m_Girlfriend.Draw(renderer);
+        m_Girlfriend.Draw(renderer, m_CamGame.scrollX, m_CamGame.scrollY, m_CamGame.zoom);
     }
-    m_Dad.Draw(renderer);
-    m_Boyfriend.Draw(renderer);
+    m_Dad.Draw(renderer, m_CamGame.scrollX, m_CamGame.scrollY, m_CamGame.zoom);
+    m_Boyfriend.Draw(renderer, m_CamGame.scrollX, m_CamGame.scrollY, m_CamGame.zoom);
+
+    for (const Note& note : m_Notes) {
+        note.Draw(renderer);
+    }
+    for (const StrumNote& strum : m_OpponentStrums) {
+        strum.Draw(renderer);
+    }
+    for (const StrumNote& strum : m_PlayerStrums) {
+        strum.Draw(renderer);
+    }
+    for (const HoldSplash& splash : m_HoldSplashes) {
+        splash.Draw(renderer);
+    }
+    for (const NoteSplash& splash : m_NoteSplashes) {
+        splash.Draw(renderer);
+    }
 
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 155);
@@ -196,18 +511,35 @@ void PlayState::Render(SDL_Renderer* renderer) {
     SDL_Rect bottomBar = { 0, 640, 1280, 80 };
     SDL_RenderFillRect(renderer, &bottomBar);
 
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 55);
-    for (int i = 0; i < 4; ++i) {
-        SDL_Rect receptor = { 690 + i * 92, 560, 58, 58 };
-        SDL_RenderFillRect(renderer, &receptor);
-    }
+    const int healthBarX = 320;
+    const int healthBarY = 18;
+    const int healthBarW = 640;
+    const int healthBarH = 20;
+    SDL_SetRenderDrawColor(renderer, 35, 35, 35, 255);
+    SDL_Rect healthBack = { healthBarX, healthBarY, healthBarW, healthBarH };
+    SDL_RenderFillRect(renderer, &healthBack);
+    SDL_SetRenderDrawColor(renderer, 255, 70, 80, 255);
+    SDL_Rect healthLeft = { healthBarX, healthBarY, static_cast<int>(healthBarW * (1.0f - (m_Health * 0.5f))), healthBarH };
+    SDL_RenderFillRect(renderer, &healthLeft);
+    SDL_SetRenderDrawColor(renderer, 65, 220, 150, 255);
+    SDL_Rect healthRight = { healthBarX + healthLeft.w, healthBarY, healthBarW - healthLeft.w, healthBarH };
+    SDL_RenderFillRect(renderer, &healthRight);
+
+    SDL_SetRenderDrawColor(renderer, 35, 35, 35, 255);
+    SDL_Rect timeBack = { 458, 48, 364, 12 };
+    SDL_RenderFillRect(renderer, &timeBack);
+    const float songProgress = (m_SongEndTimeMs > 0.0f) ? std::min(1.0f, Conductor::songPosition / m_SongEndTimeMs) : 0.0f;
+    SDL_SetRenderDrawColor(renderer, 220, 220, 220, 255);
+    SDL_Rect timeFill = { 458, 48, static_cast<int>(364.0f * songProgress), 12 };
+    SDL_RenderFillRect(renderer, &timeFill);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 
     const SDL_Color white = { 255, 255, 255, 255 };
     const SDL_Color soft = { 220, 220, 220, 255 };
     DrawText(renderer, m_TitleFont, m_Chart.songName, 34, 20, white, false);
-    DrawText(renderer, m_Font, "Stage: " + m_StageData.stageName + "   BPM: " + std::to_string(static_cast<int>(m_Chart.bpm)), 34, 56, soft, false);
-    DrawText(renderer, m_Font, "ESC back to Freeplay   Arrow keys make Boyfriend sing", 640, 669, white, true);
+    DrawText(renderer, m_Font, "Stage: " + m_StageData.stageName + "   BPM: " + std::to_string(static_cast<int>(m_Chart.bpm)) + "   Hits: " + std::to_string(m_SongHits) + "   Misses: " + std::to_string(m_SongMisses), 34, 56, soft, false);
+    DrawText(renderer, m_Font, FormatSongTime(Conductor::songPosition) + " / " + FormatSongTime(m_SongEndTimeMs), 640, 24, white, true);
+    DrawText(renderer, m_Font, "ESC back to Freeplay   camGame/camHUD/camOther base listas   Upscroll activo", 640, 669, white, true);
 }
 
 } // namespace FNF

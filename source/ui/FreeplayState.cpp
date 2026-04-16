@@ -506,6 +506,8 @@ void FreeplayState::ConfirmSelection() {
         : m_Songs[m_CurSelected].difficulties[m_CurDifficulty];
     request.chartPath = resolved.chartPath;
     request.instPath = resolved.instPath;
+    request.playerVoicesPath = Paths::Voices(ToSongPath(m_Songs[m_CurSelected].name), "Player");
+    request.opponentVoicesPath = Paths::Voices(ToSongPath(m_Songs[m_CurSelected].name), "Opponent");
     request.fallbackStage = resolved.stageName;
 
     StateManager::Get().SwitchWithFade(std::make_unique<LoadingState>(request), 0.7f);

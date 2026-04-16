@@ -98,10 +98,17 @@ bool Character::LoadInternal(SDL_Renderer* renderer, const std::string& characte
     m_Animations = std::move(animations);
     m_Scale = JsonLoader::Get(*json, "scale", 1.0f);
     m_Sprite.SetScale(m_Scale);
+    m_Sprite.flipX = JsonLoader::Get(*json, "flip_x", false);
+    m_VocalsFile = JsonLoader::Get(*json, "vocalsFile", JsonLoader::Get(*json, "vocals_file", std::string()));
+    m_SingDurationSeconds = JsonLoader::Get(*json, "sing_duration", 4.0f) * 0.15f;
 
     if (json->contains("position") && (*json)["position"].is_array() && (*json)["position"].size() >= 2) {
         m_PosOffsetX = (*json)["position"][0].get<float>();
         m_PosOffsetY = (*json)["position"][1].get<float>();
+    }
+    if (json->contains("camera_position") && (*json)["camera_position"].is_array() && (*json)["camera_position"].size() >= 2) {
+        m_CameraOffsetX = (*json)["camera_position"][0].get<float>();
+        m_CameraOffsetY = (*json)["camera_position"][1].get<float>();
     }
 
     Dance();
@@ -138,6 +145,14 @@ void Character::SetPosition(float px, float py) {
 }
 
 void Character::Update(float dt) {
+    if (m_HoldTimer > 0.0f) {
+        m_HoldTimer -= dt;
+        if (m_HoldTimer <= 0.0f) {
+            m_HoldTimer = 0.0f;
+            m_HoldLane = -1;
+        }
+    }
+
     m_Sprite.Update(dt);
 }
 
@@ -145,7 +160,20 @@ void Character::Draw(SDL_Renderer* renderer) const {
     m_Sprite.Draw(renderer);
 }
 
+void Character::Draw(SDL_Renderer* renderer, float cameraX, float cameraY, float zoom) const {
+    AnimatedSprite sprite = m_Sprite;
+    sprite.x = (m_Sprite.x - cameraX) * zoom;
+    sprite.y = (m_Sprite.y - cameraY) * zoom;
+    sprite.scaleX = m_Sprite.scaleX * zoom;
+    sprite.scaleY = m_Sprite.scaleY * zoom;
+    sprite.Draw(renderer);
+}
+
 void Character::Dance() {
+    if (IsHolding()) {
+        return;
+    }
+
     if (HasAnimation("danceLeft") && HasAnimation("danceRight")) {
         m_DanceToggle = !m_DanceToggle;
         PlayAnimation(m_DanceToggle ? "danceRight" : "danceLeft", true);
@@ -157,7 +185,7 @@ void Character::Dance() {
     }
 }
 
-void Character::Sing(int lane) {
+void Character::Sing(int lane, float holdDuration) {
     static const char* kAnimNames[4] = { "singLEFT", "singDOWN", "singUP", "singRIGHT" };
     if (lane < 0 || lane > 3) {
         return;
@@ -165,7 +193,30 @@ void Character::Sing(int lane) {
 
     if (HasAnimation(kAnimNames[lane])) {
         PlayAnimation(kAnimNames[lane], true);
+        if (holdDuration > 0.0f) {
+            m_HoldLane = lane;
+            m_HoldTimer = holdDuration;
+        }
     }
+}
+
+void Character::Hold(int lane, float duration) {
+    Sing(lane, duration);
+}
+
+void Character::StopHold(int lane) {
+    if (lane < 0 || m_HoldLane == lane) {
+        m_HoldLane = -1;
+        m_HoldTimer = 0.0f;
+    }
+}
+
+SDL_FPoint Character::GetCameraFocusPoint() const {
+    SDL_FPoint point = {
+        x + m_PosOffsetX + m_CurrentAnimOffsetX + m_Sprite.GetWidth() * 0.5f + m_CameraOffsetX,
+        y + m_PosOffsetY + m_CurrentAnimOffsetY + m_Sprite.GetHeight() * 0.35f + m_CameraOffsetY
+    };
+    return point;
 }
 
 } // namespace FNF

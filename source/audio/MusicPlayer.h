@@ -53,6 +53,7 @@ public:
 
     static bool IsPlaying();
     static bool IsPaused();
+    static void ClearCache(bool keepCurrent = true);
 
 private:
     static Mix_Music* s_Music;

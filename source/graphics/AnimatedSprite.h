@@ -31,6 +31,7 @@ struct SparrowFrame {
 
     // Source rect within the atlas texture
     int x = 0, y = 0, w = 0, h = 0;
+    bool rotated = false;
 
     // Trim offset: actual pixel content starts at (−frameX, −frameY)
     // within a full frame of (frameW x frameH)
@@ -60,6 +61,8 @@ public:
     float alpha  = 1.0f;
     float angle  = 0.0f;
     bool  visible = true;
+    bool  flipX = false;
+    bool  flipY = false;
 
     Uint8 colorR = 255, colorG = 255, colorB = 255;
 
@@ -100,6 +103,7 @@ public:
 
     /** Draw to renderer */
     void Draw(SDL_Renderer* renderer) const;
+    void Draw(SDL_Renderer* renderer, const SDL_Rect* clipRect) const;
 
     // -----------------------------------------------------------------------
     // Queries

@@ -7,6 +7,7 @@
  */
 
 #include "StateManager.h"
+#include "MemoryManager.h"
 #include "SubStateManager.h"
 #include "Logger.h"
 #include "../ui/transition/FadeTransition.h"
@@ -112,6 +113,7 @@ void StateManager::ApplyPending() {
             if (!m_Stack.empty()) {
                 m_Stack.top()->Exit();
                 m_Stack.pop();
+                MemoryManager::Collect();
             }
             m_PendingState->Enter();
             m_Stack.push(std::move(m_PendingState));
@@ -121,6 +123,7 @@ void StateManager::ApplyPending() {
             if (!m_Stack.empty()) {
                 m_Stack.top()->Exit();
                 m_Stack.pop();
+                MemoryManager::Collect();
             }
             break;
 
@@ -129,6 +132,7 @@ void StateManager::ApplyPending() {
                 m_Stack.top()->Exit();
                 m_Stack.pop();
             }
+            MemoryManager::Collect();
             break;
 
         default:

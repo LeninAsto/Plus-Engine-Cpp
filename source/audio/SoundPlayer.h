@@ -14,6 +14,7 @@ namespace FNF {
 class SoundPlayer {
 public:
     static bool Play(const std::string& path, float volume = 1.0f);
+    static void ClearCache();
     static void Shutdown();
 
 private:

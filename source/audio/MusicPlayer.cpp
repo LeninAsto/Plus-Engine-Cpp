@@ -162,4 +162,27 @@ bool MusicPlayer::IsPaused() {
     return s_Initialized && Mix_PausedMusic();
 }
 
+void MusicPlayer::ClearCache(bool keepCurrent) {
+    for (auto it = s_Cache.begin(); it != s_Cache.end();) {
+        Mix_Music* cachedMusic = it->second;
+        const bool isCurrent = cachedMusic == s_Music;
+
+        if (keepCurrent && isCurrent) {
+            ++it;
+            continue;
+        }
+
+        if (cachedMusic) {
+            Mix_FreeMusic(cachedMusic);
+        }
+        it = s_Cache.erase(it);
+    }
+
+    if (!keepCurrent && s_Music) {
+        Mix_HaltMusic();
+        Mix_FreeMusic(s_Music);
+        s_Music = nullptr;
+    }
+}
+
 } // namespace FNF

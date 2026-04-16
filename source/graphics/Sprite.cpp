@@ -21,6 +21,10 @@ bool Sprite::Load(SDL_Renderer* renderer, const std::string& path) {
 }
 
 void Sprite::Draw(SDL_Renderer* renderer) const {
+    Draw(renderer, 0.0f, 0.0f, 1.0f);
+}
+
+void Sprite::Draw(SDL_Renderer* renderer, float offsetX, float offsetY, float zoom) const {
     if (!visible || !m_Texture) return;
 
     // Apply alpha
@@ -34,18 +38,25 @@ void Sprite::Draw(SDL_Renderer* renderer) const {
 
     // Destination rect
     SDL_Rect dst = {
-        static_cast<int>(x),
-        static_cast<int>(y),
-        static_cast<int>(texWidth  * scaleX),
-        static_cast<int>(texHeight * scaleY)
+        static_cast<int>((x - offsetX) * zoom),
+        static_cast<int>((y - offsetY) * zoom),
+        static_cast<int>(texWidth  * scaleX * zoom),
+        static_cast<int>(texHeight * scaleY * zoom)
     };
 
-    if (angle != 0.0f) {
+    SDL_RendererFlip flip = SDL_FLIP_NONE;
+    if (flipX) flip = static_cast<SDL_RendererFlip>(flip | SDL_FLIP_HORIZONTAL);
+    if (flipY) flip = static_cast<SDL_RendererFlip>(flip | SDL_FLIP_VERTICAL);
+
+    if (angle != 0.0f || flip != SDL_FLIP_NONE) {
         SDL_RenderCopyEx(renderer, m_Texture, nullptr, &dst,
-                         static_cast<double>(angle), nullptr, SDL_FLIP_NONE);
+                         static_cast<double>(angle), nullptr, flip);
     } else {
         SDL_RenderCopy(renderer, m_Texture, nullptr, &dst);
     }
+
+    SDL_SetTextureAlphaMod(m_Texture, 255);
+    SDL_SetTextureColorMod(m_Texture, 255, 255, 255);
 }
 
 void Sprite::ScreenCenter(int screenW, int screenH) {

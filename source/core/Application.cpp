@@ -8,6 +8,7 @@
 
 #include "Application.h"
 #include "Logger.h"
+#include "MemoryManager.h"
 #include "StateManager.h"
 #include "../data/Paths.h"
 #include "../audio/MusicPlayer.h"
@@ -294,6 +295,10 @@ void Application::HandleEvents() {
         }
         if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F2) {
             DebugOverlay::Get().CycleMode();
+            return;
+        }
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_F3) {
+            MemoryManager::Collect(true);
             return;
         }
 

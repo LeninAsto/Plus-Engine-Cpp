@@ -14,6 +14,8 @@ struct PlayRequest {
     std::string difficultyName;
     std::string chartPath;
     std::string instPath;
+    std::string playerVoicesPath;
+    std::string opponentVoicesPath;
     std::string fallbackStage = "stage";
 };
 

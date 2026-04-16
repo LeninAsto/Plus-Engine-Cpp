@@ -16,8 +16,10 @@
                 "${workspaceFolder}\\source\\audio\\Conductor.cpp",
                 "${workspaceFolder}\\source\\audio\\MusicPlayer.cpp",
                 "${workspaceFolder}\\source\\audio\\SoundPlayer.cpp",
+                "${workspaceFolder}\\source\\audio\\VocalsPlayer.cpp",
                 "${workspaceFolder}\\source\\core\\Application.cpp",
                 "${workspaceFolder}\\source\\core\\Logger.cpp",
+                "${workspaceFolder}\\source\\core\\MemoryManager.cpp",
                 "${workspaceFolder}\\source\\core\\MusicBeatState.cpp",
                 "${workspaceFolder}\\source\\core\\StateManager.cpp",
                 "${workspaceFolder}\\source\\core\\SubStateManager.cpp",
@@ -27,8 +29,12 @@
                 "${workspaceFolder}\\source\\graphics\\Sprite.cpp",
                 "${workspaceFolder}\\source\\graphics\\Texture.cpp",
                 "${workspaceFolder}\\source\\play\\Character.cpp",
+                "${workspaceFolder}\\source\\play\\HoldSplash.cpp",
+                "${workspaceFolder}\\source\\play\\Note.cpp",
+                "${workspaceFolder}\\source\\play\\NoteSplash.cpp",
                 "${workspaceFolder}\\source\\play\\SongChart.cpp",
                 "${workspaceFolder}\\source\\play\\Stage.cpp",
+                "${workspaceFolder}\\source\\play\\StrumNote.cpp",
                 "${workspaceFolder}\\source\\ui\\CreditsState.cpp",
                 "${workspaceFolder}\\source\\ui\\FreeplayState.cpp",
                 "${workspaceFolder}\\source\\ui\\LoadingState.cpp",
@@ -64,8 +70,7 @@
                 "$msCompile"
             ],
             "group": {
-                "kind": "build",
-                "isDefault": true
+                "kind": "build"
             },
             "detail": "Tarea generada por el depurador."
         },

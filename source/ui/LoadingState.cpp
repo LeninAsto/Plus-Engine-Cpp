@@ -7,6 +7,7 @@
 #include "FreeplayState.h"
 #include "PlayState.h"
 #include "../audio/MusicPlayer.h"
+#include "../audio/VocalsPlayer.h"
 #include "../core/Logger.h"
 #include "../core/StateManager.h"
 #include "../data/Paths.h"
@@ -79,7 +80,11 @@ void LoadingState::Advance(SDL_Renderer* renderer) {
                 break;
             }
             if (m_Chart->stage.empty()) {
-                m_Chart->stage = m_Request.fallbackStage;
+                std::string fallbackStage = StageScene::VanillaSongStage(m_Chart->songName);
+                if (fallbackStage == "stage" && !m_Request.fallbackStage.empty()) {
+                    fallbackStage = m_Request.fallbackStage;
+                }
+                m_Chart->stage = fallbackStage;
             }
             m_Progress = 0.20f;
             m_Status = "Loading stage data...";
@@ -122,6 +127,12 @@ void LoadingState::Advance(SDL_Renderer* renderer) {
         case Step::PrecacheMusic:
             if (!m_Request.instPath.empty()) {
                 MusicPlayer::Preload(m_Request.instPath);
+            }
+            if (!m_Request.playerVoicesPath.empty()) {
+                VocalsPlayer::PreloadPlayer(m_Request.playerVoicesPath);
+            }
+            if (!m_Request.opponentVoicesPath.empty()) {
+                VocalsPlayer::PreloadOpponent(m_Request.opponentVoicesPath);
             }
             m_Progress = 1.0f;
             m_Status = "Starting PlayState...";

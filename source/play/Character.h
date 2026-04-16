@@ -19,9 +19,16 @@ public:
 
     void Update(float dt);
     void Draw(SDL_Renderer* renderer) const;
+    void Draw(SDL_Renderer* renderer, float cameraX, float cameraY, float zoom) const;
     void Dance();
-    void Sing(int lane);
+    void Sing(int lane, float holdDuration = 0.0f);
+    void Hold(int lane, float duration);
+    void StopHold(int lane = -1);
+    bool IsHolding() const { return m_HoldTimer > 0.0f; }
     void SetPosition(float px, float py);
+    SDL_FPoint GetCameraFocusPoint() const;
+    float GetSingDurationSeconds() const { return m_SingDurationSeconds; }
+    const std::string& GetVocalsFile() const { return m_VocalsFile; }
 
     float x = 0.0f;
     float y = 0.0f;
@@ -45,6 +52,12 @@ private:
     float m_CurrentAnimOffsetY = 0.0f;
     float m_Scale = 1.0f;
     bool m_DanceToggle = false;
+    float m_HoldTimer = 0.0f;
+    int m_HoldLane = -1;
+    float m_CameraOffsetX = 0.0f;
+    float m_CameraOffsetY = 0.0f;
+    float m_SingDurationSeconds = 0.6f;
+    std::string m_VocalsFile;
 
     bool LoadInternal(SDL_Renderer* renderer, const std::string& characterId, bool keepConfiguredSprite);
     bool HasAnimation(const std::string& animName) const;

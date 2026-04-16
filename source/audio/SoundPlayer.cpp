@@ -44,13 +44,19 @@ bool SoundPlayer::Play(const std::string& path, float volume) {
     return true;
 }
 
-void SoundPlayer::Shutdown() {
+void SoundPlayer::ClearCache() {
+    Mix_HaltChannel(-1);
+
     for (auto& entry : s_Cache) {
         if (entry.second) {
             Mix_FreeChunk(entry.second);
         }
     }
     s_Cache.clear();
+}
+
+void SoundPlayer::Shutdown() {
+    ClearCache();
 }
 
 } // namespace FNF

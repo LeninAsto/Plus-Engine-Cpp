@@ -23,7 +23,7 @@ struct SongChartData {
     std::string player1 = "bf";
     std::string player2 = "dad";
     std::string gfVersion = "gf";
-    std::string stage = "stage";
+    std::string stage;
     float bpm = 100.0f;
     bool needsVoices = false;
     std::vector<ChartNote> notes;

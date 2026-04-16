@@ -1,4 +1,4 @@
-/**
+    /**
  * Friday Night Funkin' Plus Engine - C++ Rewrite
  * AnimatedSprite Implementation
  * 
@@ -15,6 +15,7 @@
 #include <cstdio>
 #include <cmath>
 #include <algorithm>
+#include <cctype>
 
 namespace FNF {
 
@@ -36,6 +37,16 @@ static int XmlAttrInt(const std::string& line, const std::string& attr, int def 
     auto s = XmlAttrStr(line, attr);
     if (s.empty()) return def;
     try { return std::stoi(s); } catch (...) { return def; }
+}
+
+static bool XmlAttrBool(const std::string& line, const std::string& attr, bool def = false) {
+    auto s = XmlAttrStr(line, attr);
+    if (s.empty()) return def;
+
+    std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) {
+        return static_cast<char>(std::tolower(c));
+    });
+    return s == "true" || s == "1";
 }
 
 // ---------------------------------------------------------------------------
@@ -73,6 +84,7 @@ bool AnimatedSprite::Load(SDL_Renderer* renderer,
         f.y      = XmlAttrInt(line, "y");
         f.w      = XmlAttrInt(line, "width");
         f.h      = XmlAttrInt(line, "height");
+        f.rotated = XmlAttrBool(line, "rotated", false);
         f.frameX = XmlAttrInt(line, "frameX",      0);
         f.frameY = XmlAttrInt(line, "frameY",      0);
         f.frameW = XmlAttrInt(line, "frameWidth",  f.w);
@@ -209,7 +221,20 @@ void AnimatedSprite::Update(float dt) {
 // ---------------------------------------------------------------------------
 
 void AnimatedSprite::Draw(SDL_Renderer* renderer) const {
+    Draw(renderer, nullptr);
+}
+
+void AnimatedSprite::Draw(SDL_Renderer* renderer, const SDL_Rect* clipRect) const {
     if (!visible || !m_Texture) return;
+
+    SDL_Rect previousClip = {};
+    const bool hadClipRect = SDL_RenderIsClipEnabled(renderer) == SDL_TRUE;
+    if (hadClipRect) {
+        SDL_RenderGetClipRect(renderer, &previousClip);
+    }
+    if (clipRect) {
+        SDL_RenderSetClipRect(renderer, clipRect);
+    }
 
     const SparrowFrame* sf = CurrentFrame();
 
@@ -272,11 +297,36 @@ void AnimatedSprite::Draw(SDL_Renderer* renderer) const {
         static_cast<int>(static_cast<float>(src.h) * scaleY * ratioH)
     };
 
-    if (angle != 0.0f) {
+    double finalAngle = static_cast<double>(angle);
+    if (sf && sf->rotated) {
+        const int rotatedWidth = dst.h;
+        const int rotatedHeight = dst.w;
+
+        dst.x += (rotatedWidth - dst.w) / 2;
+        dst.y += (rotatedHeight - dst.h) / 2;
+        finalAngle -= 90.0;
+    }
+
+    SDL_RendererFlip flip = SDL_FLIP_NONE;
+    if (flipX) flip = static_cast<SDL_RendererFlip>(flip | SDL_FLIP_HORIZONTAL);
+    if (flipY) flip = static_cast<SDL_RendererFlip>(flip | SDL_FLIP_VERTICAL);
+
+    if (finalAngle != 0.0 || flip != SDL_FLIP_NONE) {
         SDL_RenderCopyEx(renderer, m_Texture, &clampedSrc, &dst,
-                         static_cast<double>(angle), nullptr, SDL_FLIP_NONE);
+                         finalAngle, nullptr, flip);
     } else {
         SDL_RenderCopy(renderer, m_Texture, &clampedSrc, &dst);
+    }
+
+    SDL_SetTextureAlphaMod(m_Texture, 255);
+    SDL_SetTextureColorMod(m_Texture, 255, 255, 255);
+
+    if (clipRect) {
+        if (hadClipRect) {
+            SDL_RenderSetClipRect(renderer, &previousClip);
+        } else {
+            SDL_RenderSetClipRect(renderer, nullptr);
+        }
     }
 }
 
