@@ -1,1 +1,3 @@
 Este engine es una prueba personal para recrear Psych Engine (Plus Engine) en C++. No es un proyecto oficial ni tiene relación con los creadores de Psych Engine. El objetivo es aprender y experimentar con C++ y desarrollo de juegos, no competir con Psych Engine ni reemplazarlo. Cualquier similitud con Psych Engine es pura coincidencia. Este proyecto es solo para fines educativos y de diversión personal.
+
+Para compilar en Windows con Visual Studio 2022 y cl.exe, revisa BUILDING.md.
