@@ -11,8 +11,8 @@
 
 #define SDL_MAIN_HANDLED
 
-#include "core/Logger.h"
-#include "core/Application.h"
+#include "backend/Logger.h"
+#include "backend/Application.h"
 
 int main(int argc, char* argv[]) {
     // Initialize logger

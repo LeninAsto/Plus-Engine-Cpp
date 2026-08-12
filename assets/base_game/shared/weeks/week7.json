@@ -4,27 +4,27 @@
 			"Ugh",
 			"tankman",
 			[
-				255,
-				255,
-				255
+				246,
+				182,
+				4
 			]
 		],
 		[
 			"Guns",
 			"tankman",
 			[
-				255,
-				255,
-				255
+				246,
+				182,
+				4
 			]
 		],
 		[
 			"Stress",
 			"tankman",
 			[
-				255,
-				255,
-				255
+				246,
+				182,
+				4
 			]
 		]
 	],
@@ -38,12 +38,11 @@
 	"storyName": "Tankman",
 	"weekName": "Week 7",
 	"freeplayColor": [
-		255,
-		255,
-		255
+		146,
+		113,
+		253
 	],
 	"hideStoryMode": false,
 	"weekBefore": "week6",
-	"startUnlocked": true,
-	"difficulties": "Easy, Normal, Hard, Erect, Nightmare"
+	"startUnlocked": true
 }

@@ -1,78 +1,51 @@
 {
     "tasks": [
         {
-            "type": "cppbuild",
-            "label": "C/C++: cl.exe compilar proyecto (core)",
-            "command": "cl.exe",
+            "label": "C/C++: cl.exe compilar proyecto",
+            "type": "shell",
+            "command": "powershell",
             "args": [
-                "/Zi",
-                "/EHsc",
-                "/std:c++17",
-                "/nologo",
-                "/IC:\\vcpkg\\installed\\x64-windows\\include",
-                "/Fo${workspaceFolder}\\build\\obj\\",
-                "/Fd${workspaceFolder}\\build\\PlusEngine.pdb",
-                "${workspaceFolder}\\source\\main.cpp",
-                "${workspaceFolder}\\source\\audio\\Conductor.cpp",
-                "${workspaceFolder}\\source\\audio\\MusicPlayer.cpp",
-                "${workspaceFolder}\\source\\audio\\SoundPlayer.cpp",
-                "${workspaceFolder}\\source\\audio\\VocalsPlayer.cpp",
-                "${workspaceFolder}\\source\\core\\Application.cpp",
-                "${workspaceFolder}\\source\\core\\Logger.cpp",
-                "${workspaceFolder}\\source\\core\\MemoryManager.cpp",
-                "${workspaceFolder}\\source\\core\\MusicBeatState.cpp",
-                "${workspaceFolder}\\source\\core\\StateManager.cpp",
-                "${workspaceFolder}\\source\\core\\SubStateManager.cpp",
-                "${workspaceFolder}\\source\\data\\Paths.cpp",
-                "${workspaceFolder}\\source\\graphics\\Alphabet.cpp",
-                "${workspaceFolder}\\source\\graphics\\AnimatedSprite.cpp",
-                "${workspaceFolder}\\source\\graphics\\Sprite.cpp",
-                "${workspaceFolder}\\source\\graphics\\Texture.cpp",
-                "${workspaceFolder}\\source\\play\\Character.cpp",
-                "${workspaceFolder}\\source\\play\\HoldSplash.cpp",
-                "${workspaceFolder}\\source\\play\\Note.cpp",
-                "${workspaceFolder}\\source\\play\\NoteSplash.cpp",
-                "${workspaceFolder}\\source\\play\\SongChart.cpp",
-                "${workspaceFolder}\\source\\play\\Stage.cpp",
-                "${workspaceFolder}\\source\\play\\StrumNote.cpp",
-                "${workspaceFolder}\\source\\ui\\CreditsState.cpp",
-                "${workspaceFolder}\\source\\ui\\FreeplayState.cpp",
-                "${workspaceFolder}\\source\\ui\\LoadingState.cpp",
-                "${workspaceFolder}\\source\\ui\\MainMenuState.cpp",
-                "${workspaceFolder}\\source\\ui\\PlayState.cpp",
-                "${workspaceFolder}\\source\\ui\\TitleState.cpp",
-                "${workspaceFolder}\\source\\ui\\debug\\DebugOverlay.cpp",
-                "${workspaceFolder}\\source\\ui\\transition\\FadeTransition.cpp",
-                "/link",
-                "/OUT:${workspaceFolder}\\build\\PlusEngine.exe",
-                "/PDB:${workspaceFolder}\\build\\PlusEngine.pdb",
-                "/ILK:${workspaceFolder}\\build\\PlusEngine.ilk",
-                "/LIBPATH:C:\\vcpkg\\installed\\x64-windows\\lib",
-                "/DELAYLOAD:SDL2.dll",
-                "/DELAYLOAD:SDL2_image.dll",
-                "/DELAYLOAD:SDL2_mixer.dll",
-                "/DELAYLOAD:SDL2_ttf.dll",
-                "SDL2.lib",
-                "SDL2_image.lib",
-                "SDL2_mixer.lib",
-                "SDL2_ttf.lib",
-                "delayimp.lib",
-                "user32.lib",
-                "gdi32.lib",
-                "psapi.lib",
-                "gdiplus.lib",
-                "winmm.lib"
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}\\scripts\\build\\build.ps1",
+                "-Configuration",
+                "Debug"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "PLUS_BUILD_FLAGS": "officialBuild,TRANSLATIONS_ALLOWED,VIDEOS_ALLOWED,MODS_ALLOWED"
+                }
+            },
+            "problemMatcher": [
+                "$msCompile"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "C/C++: cl.exe compilar core",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}\\scripts\\build\\build-core.ps1",
+                "-Configuration",
+                "Debug"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": [
                 "$msCompile"
-            ],
-            "group": {
-                "kind": "build"
-            },
-            "detail": "Tarea generada por el depurador."
+            ]
         },
         {
             "label": "Copiar build assets",
@@ -83,7 +56,7 @@
                 "-ExecutionPolicy",
                 "Bypass",
                 "-File",
-                "${workspaceFolder}\\scripts\\sync-build-assets.ps1"
+                "${workspaceFolder}\\scripts\\assets\\sync-build-assets.ps1"
             ],
             "options": {
                 "cwd": "${workspaceFolder}",
@@ -102,7 +75,7 @@
                 "-ExecutionPolicy",
                 "Bypass",
                 "-File",
-                "${workspaceFolder}\\scripts\\sync-build-assets.ps1",
+                "${workspaceFolder}\\scripts\\assets\\sync-build-assets.ps1",
                 "-Flags",
                 "${input:buildFlags}"
             ],
@@ -120,7 +93,7 @@
                 "-ExecutionPolicy",
                 "Bypass",
                 "-File",
-                "${workspaceFolder}\\scripts\\copy-runtime-plugins.ps1"
+                "${workspaceFolder}\\scripts\\runtime\\copy-runtime-plugins.ps1"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -128,18 +101,20 @@
             "problemMatcher": []
         },
         {
-            "label": "C/C++: cl.exe compilar proyecto",
-            "dependsOrder": "sequence",
-            "dependsOn": [
-                "C/C++: cl.exe compilar proyecto (core)",
-                "Copiar build assets",
-                "Copiar runtime plugins"
+            "label": "Instalar dependencias vcpkg",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}\\scripts\\setup\\install-vcpkg-deps.ps1"
             ],
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
         }
     ],
     "inputs": [

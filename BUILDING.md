@@ -113,7 +113,34 @@ Notas importantes:
 3. Este proyecto está pensado para `x64`, no para `x86`.
 4. Este proyecto usa `int main(...)` normal en `source/main.cpp`, así que no necesita `SDL2main.lib`.
 
-## 6. Estructura sugerida para `tasks.json`
+## 6. Estructura actual de scripts
+
+Los scripts estÃ¡n organizados por responsabilidad:
+
+```text
+scripts/build/build.ps1              build completo
+scripts/build/build-core.ps1         solo compilar C++
+scripts/assets/sync-build-assets.ps1 copiar assets a build/assets
+scripts/runtime/copy-runtime-plugins.ps1 copiar DLLs a build/plugins
+scripts/setup/install-vcpkg-deps.ps1 instalar dependencias de vcpkg
+```
+
+Los wrappers antiguos siguen existiendo por compatibilidad:
+
+```text
+scripts/sync-build-assets.ps1
+scripts/copy-runtime-plugins.ps1
+```
+
+Para compilar todo desde PowerShell:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build\build.ps1
+```
+
+Si tu carpeta de vcpkg no estÃ¡ en `C:\vcpkg`, define `VCPKG_ROOT` antes de compilar.
+
+### Ejemplo legacy de `tasks.json`
 
 Si quieres un task manual con `cl.exe` que tenga sentido, la sección de argumentos debería seguir este patrón:
 
